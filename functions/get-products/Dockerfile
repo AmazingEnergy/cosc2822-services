@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/nodejs:22
+FROM public.ecr.aws/lambda/nodejs:16
 
 # Copy application code to container
 # https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html#configuration-envvars-runtime

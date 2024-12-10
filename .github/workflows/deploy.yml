@@ -15,7 +15,7 @@ permissions:
   contents: read # This is required for actions/checkout
 
 env:
-  NODE_VERSION: 22
+  NODE_VERSION: 16
   CLUSTER_NAME: "cosc2822-ecs"
   CORE_ECR_REPOSITORY: "easy-shop-core"
   CORE_TASK_DEFINITION: "core"

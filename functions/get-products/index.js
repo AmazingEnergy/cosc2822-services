@@ -24,11 +24,8 @@ exports.handler = async (event) => {
     let data = await dynamoDb.scan(params).promise();
 
     return {
-      statusCode: 200,
-      body: JSON.stringify({
-        items: data.Items,
-        lastEvaluatedKey: data.LastEvaluatedKey,
-      }),
+      items: data.Items,
+      lastEvaluatedKey: data.LastEvaluatedKey,
     };
   } catch (error) {
     console.error(error);

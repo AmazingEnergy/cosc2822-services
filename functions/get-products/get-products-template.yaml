@@ -112,6 +112,15 @@ Resources:
         - StatusCode: "200"
           ResponseParameters:
             method.response.header.Content-Type: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
       Integration:
         Type: AWS
         IntegrationHttpMethod: POST
@@ -125,8 +134,25 @@ Resources:
           }
         IntegrationResponses:
           - StatusCode: 200
+            SelectionPattern: ""
             ResponseTemplates:
               application/json: $input.json('$')
+          - StatusCode: 400
+            SelectionPattern: ".*\\[BadRequest\\].*"
+            ResponseTemplates:
+              application/json: '{"error": "Bad Request"}'
+          - StatusCode: 404
+            SelectionPattern: ".*\\[NotFound\\].*"
+            ResponseTemplates:
+              application/json: '{"error": "Not Found"}'
+          - StatusCode: 500
+            SelectionPattern: ".*\\[InternalServerError\\].*"
+            ResponseTemplates:
+              application/json: '{"error": "Internal Server Error"}'
+          - StatusCode: 500
+            SelectionPattern: ".*"
+            ResponseTemplates:
+              application/json: '{"error": "An unknown error occurred."}'
 
   # https://docs.aws.amazon.com/lambda/latest/dg/permissions-granting-access.html
   # https://stackoverflow.com/a/39905743

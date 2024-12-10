@@ -67,7 +67,7 @@ Resources:
   PromotionRuleResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
-      ParentId: !Ref ProductResource
+      ParentId: !Ref PromotionResource
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       PathPart:

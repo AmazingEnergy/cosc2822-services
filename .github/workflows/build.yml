@@ -1,0 +1,56 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Verify Code Changed
+        id: verify-changed-code
+        uses: tj-actions/changed-files@v23.1
+        with:
+          files: |
+            **/package.json
+            services
+            services/**
+            services/**/*.sql
+            services/**/*.yml
+            services/**/*.js
+            services/**/*.html
+            services/**/*.css
+            services/**/*.json
+            services/**/Dockerfile
+            functions
+            functions/**
+            functions/**/*.js
+            functions/**/*.yaml
+            functions/**/*.json
+            functions/**/Dockerfile
+
+      - name: List All Changed Files
+        if: steps.verify-changed-code.outputs.any_changed == 'true'
+        run: |
+          for file in ${{ steps.verify-changed-code.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done
+
+      # - run: cd services
+      # - run: npm ci
+      # - run: npm run build --if-present
+      # - run: npm test

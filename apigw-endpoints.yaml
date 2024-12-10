@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to create all endpoints
+
+Parameters:
+  ApiGatewayStack:
+    Type: String
+    Description: stack name
+  Route53DNSStack:
+    Type: String
+    Description: stack name
+
+Mappings:
+  Resources:
+    Product:
+      ResourcePath: "products"
+    Inventory:
+      ResourcePath: "inventories"
+    Promotion:
+      ResourcePath: "promotion"
+      PromotionCodeResourcePath: "codes"
+      PromotionRuleResourcePath: "rules"
+
+Resources:
+  ###############################################
+  # API Gateway Resources
+  ###############################################
+
+  ProductResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayRootResourceId"
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Product, ResourcePath]
+
+  InventoryResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayRootResourceId"
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Inventory, ResourcePath]
+
+  PromotionResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayRootResourceId"
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Promotion, ResourcePath]
+
+  PromotionCodeResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref PromotionResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Promotion, PromotionCodeResourcePath]
+
+  PromotionRuleResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref ProductResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Promotion, PromotionRuleResourcePath]
+
+Outputs:
+  ProductResourceId:
+    Value: !GetAtt ProductResource.ResourceId
+    Description: Id of Product resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-ProductResourceId"
+  InventoryResourceId:
+    Value: !GetAtt InventoryResource.ResourceId
+    Description: Id of Inventory resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-InventoryResourceId"
+  PromotionResourceId:
+    Value: !GetAtt PromotionResource.ResourceId
+    Description: Id of Promotion resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PromotionResourceId"
+  PromotionCodeResourceId:
+    Value: !GetAtt PromotionCodeResource.ResourceId
+    Description: Id of PromotionCode resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PromotionCodeResourceId"
+  PromotionRuleResourceId:
+    Value: !GetAtt PromotionRuleResource.ResourceId
+    Description: Id of PromotionRule resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PromotionRuleResourceId"

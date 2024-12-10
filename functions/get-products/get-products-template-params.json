@@ -1,0 +1,18 @@
+[
+	{
+		"ParameterKey": "ApiGatewayStack",
+		"ParameterValue": "<ApiGatewayStack>"
+	},
+	{
+		"ParameterKey": "EndpointsStack",
+		"ParameterValue": "<EndpointsStack>"
+	},
+	{
+		"ParameterKey": "ContainerRegistry",
+		"ParameterValue": "<ContainerRegistry>"
+	},
+	{
+		"ParameterKey": "ImageTag",
+		"ParameterValue": "<ImageTag>"
+	}
+]

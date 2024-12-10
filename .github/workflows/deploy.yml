@@ -1,0 +1,122 @@
+name: Deploy
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 22
+  CLUSTER_NAME: "cosc2822-ecs"
+  CORE_ECR_REPOSITORY: "easy-shop-core"
+  CORE_TASK_DEFINITION: "core"
+  CORE_CONTAINER_NAME: "core-svc"
+  CORE_SERVICE_NAME: "core-svc"
+
+jobs:
+  deploy:
+    name: Dockerize & Deploy
+    runs-on: ubuntu-latest
+    outputs:
+      build-number: ${{ steps.build-number.outputs.BUILD_NUMBER }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Number
+        id: build-number
+        run: echo "::set-output name=BUILD_NUMBER::$(date '+%-d.%-m.%Y.%-H.%-M.%-S')"
+
+      - name: Assume Role
+        id: assume-role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      ################################################
+      # Build Functions
+      ################################################
+
+      - name: Functions | Push to Amazon ECR
+        id: functions-build-image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
+        run: |
+          docker build -t $REGISTRY/get-products-func:$IMAGE_TAG ./functions/get-products
+          docker push $REGISTRY/get-products-func:$IMAGE_TAG
+          echo "image=$REGISTRY/get-products-func:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      ################################################
+      # Deploy Core Service
+      ################################################
+
+      - name: Core | Build & Push to Amazon ECR
+        id: core-build-image
+        if: false
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ env.CORE_ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+          echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Core | Download task definition
+        id: core-download-task-def
+        if: false
+        continue-on-error: true
+        run: |
+          aws ecs describe-task-definition --task-definition ${{ env.CORE_TASK_DEFINITION }} --query taskDefinition > task-definition.json
+
+      - name: Core | Fill in the new image ID in the Amazon ECS task definition
+        id: core-task-def
+        if: false
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        # https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-amazon-elastic-container-service
+        # https://github.com/aws-actions/amazon-ecs-deploy-task-definition#task-definition-file
+        continue-on-error: true
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CORE_CONTAINER_NAME }}
+          image: ${{ steps.build-image.outputs.image }}
+
+      - name: Core | Deploy Amazon ECS task definition
+        id: core-deploy
+        if: false
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        continue-on-error: true
+        with:
+          task-definition: ${{ steps.core-task-def.outputs.task-definition }}
+          service: ${{ env.CORE_SERVICE_NAME }}
+          cluster: ${{ env.CLUSTER_NAME }}
+          wait-for-service-stability: true
+
+      ################################################
+      # Deploy Stacks
+      ################################################
+
+      - name: Deploy all stacks
+        id: deploy-stacks
+        env:
+          REGION: ${{ secrets.AWS_REGION }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
+        run: |
+          ls -l
+          aws s3 ls
+          chmod +x ./scripts.sh
+          ./scripts.sh --action deploy-all-stacks --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $region
+          aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE
+          aws cloudformation list-stacks --stack-status-filter UPDATE_COMPLETE
+          aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --region us-east-1
+          aws cloudformation list-stacks --stack-status-filter UPDATE_COMPLETE --region us-east-1

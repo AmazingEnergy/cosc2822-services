@@ -123,9 +123,9 @@ Resources:
           {
             "application/json": '{"lastEvaluatedKey":"$input.params(''lastEvaluatedKey'')"}',
           }
-        IntegrationResponses:
-          - StatusCode: "200"
-            SelectionPattern: ""
+        # IntegrationResponses:
+        #   - StatusCode: "200"
+        #     SelectionPattern: ""
 
   # https://docs.aws.amazon.com/lambda/latest/dg/permissions-granting-access.html
   # https://stackoverflow.com/a/39905743

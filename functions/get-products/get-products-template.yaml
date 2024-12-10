@@ -5,7 +5,7 @@ Parameters:
   FunctionName:
     Type: String
     Description: function name
-    Default: GetProductsFunction
+    Default: GetProducts
   FunctionRepository:
     Type: String
     Description: function ECR repository

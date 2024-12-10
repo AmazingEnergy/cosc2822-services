@@ -33,6 +33,7 @@ while [[ "$#" -gt 0 ]]; do
     --password) PASSWORD="$2"; shift ;;
     --container-registry) CONTAINER_REGISTRY="$2"; shift ;;
     --image-tag) IMAGE_TAG="$2"; shift ;;
+    --container-repository) CONTAINER_REPOSITORY="$2"; shift ;;
     *) POSITIONAL+=("$1") ;; # Collect positional arguments
   esac
   shift
@@ -84,5 +85,15 @@ if [[ "$ACTION" == "destroy-all-stacks" ]]; then
 
 	./cli/005-delete-stack.sh get-products-function-stack $REGION
 	./cli/005-delete-stack.sh apigw-endpoints-stack $REGION
+	exit 0
+fi
+
+#######################################################
+# Utils
+#######################################################
+
+if [[ "$ACTION" == "create-repository" ]]; then
+	chmod +x ./cli/017-create-repository.sh
+	./cli/017-create-repository.sh $CONTAINER_REPOSITORY $REGION
 	exit 0
 fi

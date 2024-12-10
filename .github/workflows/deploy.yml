@@ -56,6 +56,8 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
         run: |
+          chmod +x ./scripts.sh
+          ./scripts.sh --action create-repository --container-repository get-products-func --region $region
           docker build -t $REGISTRY/get-products-func:$IMAGE_TAG ./functions/get-products
           docker push $REGISTRY/get-products-func:$IMAGE_TAG
           echo "image=$REGISTRY/get-products-func:$IMAGE_TAG" >> $GITHUB_OUTPUT

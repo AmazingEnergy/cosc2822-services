@@ -113,7 +113,7 @@ Resources:
           ResponseParameters:
             method.response.header.Content-Type: true
       Integration:
-        Type: AWS_PROXY
+        Type: AWS
         IntegrationHttpMethod: POST
         Uri:
           Fn::Sub:
@@ -123,9 +123,10 @@ Resources:
           {
             "application/json": '{"lastEvaluatedKey":"$input.params(''lastEvaluatedKey'')"}',
           }
-        # IntegrationResponses:
-        #   - StatusCode: "200"
-        #     SelectionPattern: ""
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseTemplates:
+              application/json: $input.json('$')
 
   # https://docs.aws.amazon.com/lambda/latest/dg/permissions-granting-access.html
   # https://stackoverflow.com/a/39905743

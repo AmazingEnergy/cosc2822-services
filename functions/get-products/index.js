@@ -8,6 +8,7 @@ exports.handler = async (event) => {
   try {
     let params = {
       TableName: tableName,
+      Limit: 10,
       // Add your KeyConditionExpression and other query parameters here
       // Example:
       // KeyConditionExpression: 'partitionKey = :partitionKeyValue',
@@ -20,7 +21,7 @@ exports.handler = async (event) => {
       params.ExclusiveStartKey = event.lastEvaluatedKey;
     }
 
-    let data = await dynamoDb.query(params).promise();
+    let data = await dynamoDb.scan(params).promise();
 
     return {
       statusCode: 200,

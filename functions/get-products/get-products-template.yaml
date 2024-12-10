@@ -113,7 +113,7 @@ Resources:
           ResponseParameters:
             method.response.header.Content-Type: true
       Integration:
-        Type: AWS
+        Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri:
           Fn::Sub:
@@ -128,6 +128,7 @@ Resources:
             SelectionPattern: ""
 
   # https://docs.aws.amazon.com/lambda/latest/dg/permissions-granting-access.html
+  # https://stackoverflow.com/a/39905743
 
   LambdaPermission:
     Type: AWS::Lambda::Permission

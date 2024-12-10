@@ -48,8 +48,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - ecr:SetRepositoryPolicy
-                  - ecr:GetRepositoryPolicy
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
                 Resource: "*"
 
   LambdaFunction:

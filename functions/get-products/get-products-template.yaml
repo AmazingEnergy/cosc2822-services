@@ -50,6 +50,16 @@ Resources:
                 Action:
                   - ecr:BatchGetImage
                   - ecr:GetDownloadUrlForLayer
+                  - ecr:SetRepositoryPolicy
+                  - ecr:GetRepositoryPolicy
+                  - ecr:InitiateLayerUpload
+                  - dynamodb:BatchGetItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateIte
                 Resource: "*"
 
   LambdaFunction:

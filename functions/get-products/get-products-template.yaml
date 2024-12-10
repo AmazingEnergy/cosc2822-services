@@ -26,6 +26,7 @@ Parameters:
 Resources:
   # https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
   # https://docs.aws.amazon.com/lambda/latest/dg/permissions-managed-policies.html
+  # https://docs.aws.amazon.com/lambda/latest/dg/images-create.html
 
   LambdaExecutionRole:
     Type: AWS::IAM::Role
@@ -77,10 +78,22 @@ Resources:
         LogFormat: JSON
         LogGroup:
           Fn::Join:
-            - "-"
-            - - !Ref FunctionName
-              - execution-logs
+            - ""
+            - - "/aws/lambda/"
+              - !Ref FunctionName
         SystemLogLevel: INFO
+
+  ApiGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - "/aws/lambda/"
+            - !Ref LambdaFunction
+      RetentionInDays: 1
 
   # https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-custom-integrations.html
 

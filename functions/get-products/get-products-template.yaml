@@ -137,6 +137,6 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn:
         Fn::Sub:
-          - "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*/POST/lambda"
+          - "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*/*/*"
           - ApiId:
               Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"

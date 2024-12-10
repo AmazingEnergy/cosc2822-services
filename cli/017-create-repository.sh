@@ -12,6 +12,7 @@ OUTPUT_DIR="./_output/create-repository"
 
 EXISTING_REPOSITORY=$(aws ecr describe-repositories \
 	--query "repositories[?repositoryName=='$REPOSITORY_NAME']" \
+	--region $REGION \
 	--output text)
 
 echo "Found existing repository: $EXISTING_REPOSITORY"
@@ -20,3 +21,8 @@ echo ""
 if [[ -z "$EXISTING_REPOSITORY" || "$EXISTING_REPOSITORY" == "None" ]]; then
 	aws ecr create-repository --repository-name get-products-func --region $REGION
 fi
+
+aws ecr set-repository-policy \
+    --repository-name $REPOSITORY_NAME \
+    --policy-text file://cli/json/ecr-repository-policy.json \
+		--region $REGION

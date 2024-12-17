@@ -1,0 +1,48 @@
+name: Manual Destroy
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+on:
+  workflow_dispatch:
+
+# permission can be added at job level or workflow level
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+
+jobs:
+  deploy:
+    name: Dockerize & Deploy
+    runs-on: ubuntu-latest
+    outputs:
+      build-number: ${{ steps.build-number.outputs.BUILD_NUMBER }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assume Role
+        id: assume-role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      ################################################
+      # Destroy Stacks
+      ################################################
+
+      - name: Destroy all stacks
+        id: destroy-stacks
+        env:
+          REGION: ${{ secrets.AWS_REGION }}
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
+        run: |
+          ls -l
+          aws s3 ls
+          chmod +x ./scripts.sh
+          ./scripts.sh --action destroy-all-stacks --region $region
+          ./scripts.sh --action clean-repositories --region $region
+          aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE
+          aws cloudformation list-stacks --stack-status-filter UPDATE_COMPLETE
+          aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --region us-east-1
+          aws cloudformation list-stacks --stack-status-filter UPDATE_COMPLETE --region us-east-1

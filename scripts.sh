@@ -71,12 +71,31 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
 
 	./cli/002-run-cfn.sh apigw-endpoints-stack apigw-endpoints.yaml apigw-endpoints-params.json $REGION
 
-	sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" ./functions/get-products/get-products-template-params.json
-	sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" ./functions/get-products/get-products-template-params.json
-	sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" ./functions/get-products/get-products-template-params.json
-	sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" ./functions/get-products/get-products-template-params.json
+	# sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" ./functions/get-products/cfn-template-params.json
+	# sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" ./functions/get-products/cfn-template-params.json
+	# sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" ./functions/get-products/cfn-template-params.json
+	# sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" ./functions/get-products/cfn-template-params.json
 
-	./cli/002-run-cfn.sh get-products-function-stack functions/get-products/get-products-template.yaml functions/get-products/get-products-template-params.json $REGION
+	# ./cli/002-run-cfn.sh get-products-function-stack functions/get-products/cfn-template.yaml functions/get-products/cfn-template-params.json $REGION
+  
+  for dir in ./functions/*/; do
+    if [ -d "$dir" ]; then
+      function_name=$(basename "$dir")
+      if [ ! -f "$dir/cfn-template.yaml" ]; then
+        echo "Skipping $function_name"
+        continue
+      fi
+
+      sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" "$dir/cfn-template-params.json"
+      sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" "$dir/cfn-template-params.json"
+      sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" "$dir/cfn-template-params.json"
+      sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" "$dir/cfn-template-params.json"
+
+      non_prefix_dir=${dir#./}
+      ./cli/002-run-cfn.sh "$function_name-function-stack" "$non_prefix_dir/cfn-template.yaml" "$non_prefix_dir/cfn-template-params.json" $REGION
+    fi
+  done
+
 	exit 0
 fi
 
@@ -95,5 +114,11 @@ fi
 if [[ "$ACTION" == "create-repository" ]]; then
 	chmod +x ./cli/017-create-repository.sh
 	./cli/017-create-repository.sh $CONTAINER_REPOSITORY $REGION
+	exit 0
+fi
+
+if [[ "$ACTION" == "clean-repositories" ]]; then
+	chmod +x ./cli/018-clean-repositories.sh
+	./cli/018-clean-repositories.sh $REGION
 	exit 0
 fi

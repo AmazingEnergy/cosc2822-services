@@ -19,6 +19,13 @@ Mappings:
       ResourcePath: "promotion"
       PromotionCodeResourcePath: "codes"
       PromotionRuleResourcePath: "rules"
+      ApplyPromotionResourcePath: "apply"
+    Cart:
+      ResourcePath: "carts"
+      PayCartResourcePath: "pay"
+      SubmitCartResourcePath: "submit"
+    Order:
+      ResourcePath: "orders"
 
 Resources:
   ###############################################
@@ -73,6 +80,53 @@ Resources:
       PathPart:
         Fn::FindInMap: [Resources, Promotion, PromotionRuleResourcePath]
 
+  ApplyPromotionResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref PromotionResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Promotion, ApplyPromotionResourcePath]
+
+  CartResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayRootResourceId"
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Cart, ResourcePath]
+
+  PayCartResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref CartResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Cart, PayCartResourcePath]
+
+  SubmitCartResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref CartResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Cart, SubmitCartResourcePath]
+
+  OrderResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayRootResourceId"
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Order, ResourcePath]
+
 Outputs:
   ProductResourceId:
     Value: !GetAtt ProductResource.ResourceId
@@ -104,3 +158,33 @@ Outputs:
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-PromotionRuleResourceId"
+  ApplyPromotionResourceId:
+    Value: !GetAtt ApplyPromotionResource.ResourceId
+    Description: Id of ApplyPromotion resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-ApplyPromotionResourceId"
+  CartResourceId:
+    Value: !GetAtt CartResource.ResourceId
+    Description: Id of Cart resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-CartResourceId"
+  PayCartResourceId:
+    Value: !GetAtt PayCartResource.ResourceId
+    Description: Id of PayCart resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PayCartResourceId"
+  SubmitCartResourceId:
+    Value: !GetAtt SubmitCartResource.ResourceId
+    Description: Id of SubmitCart resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-SubmitCartResourceId"
+  OrderResourceId:
+    Value: !GetAtt OrderResource.ResourceId
+    Description: Id of Order resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-OrderResourceId"

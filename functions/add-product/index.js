@@ -14,31 +14,19 @@ exports.handler = async (event, context, callback) => {
     }
 
     if (!event.name) {
-      return {
-        statusCode: 400,
-        body: { error: "[BadRequest] name is missing." },
-      };
+      callback(new Error("[BadRequest] name is missing."));
     }
 
     if (!event.price || event.price <= 0 || isNaN(event.price)) {
-      return {
-        statusCode: 400,
-        body: { error: "[BadRequest] price is invalid or missing." },
-      };
+      callback(new Error("[BadRequest] price is missing or invalid."));
     }
 
     if (!event.category) {
-      return {
-        statusCode: 400,
-        body: { error: "[BadRequest] category is missing." },
-      };
+      callback(new Error("[BadRequest] category is missing"));
     }
 
     if (!event.type) {
-      return {
-        statusCode: 400,
-        body: { error: "[BadRequest] type is missing." },
-      };
+      callback(new Error("[BadRequest] type is missing"));
     }
 
     if (
@@ -49,20 +37,15 @@ exports.handler = async (event, context, callback) => {
         !Object.keys(event.specs).layer2Name ||
         !Object.keys(event.specs).layer2Value)
     ) {
-      return {
-        statusCode: 400,
-        body: {
-          error:
-            "[BadRequest] specs is invalid or missing (layer 1 and layer 2 are required).",
-        },
-      };
+      callback(
+        new Error(
+          "[BadRequest] specs is invalid or missing (layer 1 and layer 2 are required)."
+        )
+      );
     }
 
     if (!event.stockCode) {
-      return {
-        statusCode: 400,
-        body: { error: "[BadRequest] stockCode is missing." },
-      };
+      callback(new Error("[BadRequest] stockCode is missing"));
     }
 
     let params = {
@@ -144,21 +127,13 @@ exports.handler = async (event, context, callback) => {
     };
   } catch (error) {
     if (error.code === "ConditionalCheckFailedException") {
-      return {
-        statusCode: 400,
-        body: {
-          error: "[BadRequest] skuId, name, or stockCode already exists.",
-        },
-      };
+      callback(
+        new Error("[BadRequest] skuId, name, or stockCode already exists.")
+      );
     }
 
     console.error(error);
-    return {
-      statusCode: 500,
-      body: {
-        error:
-          "[InternalServerError] Something went wrong. Please try again later.",
-      },
-    };
+
+    callback(new Error("[InternalServerError] Something went wrong."));
   }
 };

@@ -54,19 +54,19 @@ exports.handler = async (event, context, callback) => {
         skuId: {
           S: event.skuId,
         },
-        name: {
+        "#": {
           S: event.name,
         },
         price: {
           N: event.price.toString(),
         },
-        description: {
+        "#d": {
           S: event.description || "",
         },
         category: {
           S: event.category,
         },
-        type: {
+        "#t": {
           S: event.type,
         },
         isActive: {
@@ -75,6 +75,11 @@ exports.handler = async (event, context, callback) => {
         stockCode: {
           S: event.stockCode,
         },
+      },
+      ExpressionAttributeNames: {
+        "#n": "name",
+        "#t": "type",
+        "#d": "description",
       },
       ConditionExpression:
         "attribute_not_exists(skuId) AND attribute_not_exists(stockCode) AND attribute_not_exists(name)",

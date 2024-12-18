@@ -6,15 +6,12 @@ const client = new DynamoDBClient({
 
 const tableName = process.env.TABLE_NAME || "ProductV2";
 
-exports.handler = async (event) => {
+exports.handler = async (event, context, callback) => {
   console.log("Received Event: ", event);
 
   try {
     if (!event.skuId) {
-      return {
-        statusCode: 400,
-        body: { error: "[BadRequest] Missing product skuId" },
-      };
+      callback(new Error("[BadRequest] Missing product skuId"));
     }
 
     let params = {
@@ -32,10 +29,7 @@ exports.handler = async (event) => {
     const data = await client.send(command);
 
     if (!data.Item) {
-      return {
-        statusCode: 404,
-        body: { error: "[NotFound] Product not found" },
-      };
+      callback(new Error("[NotFound] Product not found"));
     }
 
     return {
@@ -44,9 +38,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error(error);
-    return {
-      statusCode: 500,
-      body: { error: "Something went wrong." },
-    };
+    callback(new Error("[InternalServerError] Something went wrong."));
   }
 };

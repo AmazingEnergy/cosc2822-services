@@ -6,7 +6,7 @@ const client = new DynamoDBClient({
 
 const tableName = process.env.TABLE_NAME || "ProductV2";
 
-exports.handler = async (event) => {
+exports.handler = async (event, context, callback) => {
   console.log("Received Event: ", event);
   try {
     let params = {
@@ -47,9 +47,6 @@ exports.handler = async (event) => {
     };
   } catch (error) {
     console.error(error);
-    return {
-      statusCode: 500,
-      body: { error: "[InternalServerError] Something went wrong." },
-    };
+    callback(new Error("[InternalServerError] Something went wrong."));
   }
 };

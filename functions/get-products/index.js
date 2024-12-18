@@ -4,7 +4,7 @@ const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
 });
 
-const tableName = process.env.TABLE_NAME || "Product";
+const tableName = process.env.TABLE_NAME || "ProductV2";
 
 exports.handler = async (event) => {
   console.log("Received Event: ", event);

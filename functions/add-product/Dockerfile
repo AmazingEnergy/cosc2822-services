@@ -5,13 +5,13 @@ FROM public.ecr.aws/lambda/nodejs:16
 WORKDIR ${LAMBDA_TASK_ROOT}
 
 # Copy package.json and package-lock.json
-COPY package*.json ./
+COPY package.json ./
 
 # Install dependencies
 RUN npm install
 
 # Copy application files
-COPY . .
+COPY ./index.js .
 
 # Set the command to invoke the Lambda function
 CMD ["index.handler"]

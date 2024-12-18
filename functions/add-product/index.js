@@ -1,8 +1,10 @@
-const AWS = require("aws-sdk");
+const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 
-// Initialize AWS SDK clients
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
-const tableName = "Product";
+const client = new DynamoDBClient({
+  region: process.env.AWS_REGION || "ap-southeast-1",
+});
+
+const tableName = process.env.TABLE_NAME || "ProductV2";
 
 exports.handler = async (event) => {
   console.log("Received Event: ", event);
@@ -69,30 +71,79 @@ exports.handler = async (event) => {
     let params = {
       TableName: tableName,
       Item: {
-        skuId: event.skuId,
-        name: event.name,
-        price: event.price,
-        description: event.description,
-        category: event.category,
-        type: event.type,
-        parentSkuId: event.parentSkuId || null,
-        imageUrls: event.imageUrls || [],
-        specs: event.specs || {},
-        isActive: true,
-        stockCode: event.stockCode,
+        skuId: {
+          S: event.skuId,
+        },
+        name: {
+          S: event.name,
+        },
+        price: {
+          N: event.price.toString(),
+        },
+        description: {
+          S: event.description || "",
+        },
+        category: {
+          S: event.category,
+        },
+        type: {
+          S: event.type,
+        },
+        isActive: {
+          BOOL: true,
+        },
+        stockCode: {
+          S: event.stockCode,
+        },
       },
       ConditionExpression:
         "attribute_not_exists(skuId) AND attribute_not_exists(stockCode) AND attribute_not_exists(name)",
     };
 
-    await dynamoDb.put(params).promise();
+    if (event.parentSkuId) {
+      params.Item.parentSkuId = {
+        S: event.parentSkuId,
+      };
+    }
+
+    if (event.imageUrls && event.imageUrls.length > 0) {
+      params.Item.imageUrls = {
+        L: event.imageUrls.map((url) => ({ S: url })),
+      };
+    } else {
+      params.Item.imageUrls = {
+        L: [],
+      };
+    }
+
+    if (event.specs) {
+      params.Item.specs = {
+        M: {
+          layer1Name: { S: event.specs.layer1Name },
+          layer1Value: { S: event.specs.layer1Value },
+          layer2Name: { S: event.specs.layer2Name },
+          layer2Value: { S: event.specs.layer2Value },
+        },
+      };
+    } else {
+      params.Item.specs = {
+        M: {
+          layer1Name: { S: "" },
+          layer1Value: { S: "" },
+          layer2Name: { S: "" },
+          layer2Value: { S: "" },
+        },
+      };
+    }
+
+    console.log("Params: ", JSON.stringify(params));
+
+    const command = new PutItemCommand(params);
+    const data = await client.send(command);
 
     return {
       statusCode: 200,
-      body: {
-        items: data.Items,
-        lastEvaluatedKey: data.LastEvaluatedKey,
-      },
+      body: data.Item,
     };
   } catch (error) {
     if (error.code === "ConditionalCheckFailedException") {
@@ -107,7 +158,10 @@ exports.handler = async (event) => {
     console.error(error);
     return {
       statusCode: 500,
-      body: { error: "Something went wrong." },
+      body: {
+        error:
+          "[InternalServerError] Something went wrong. Please try again later.",
+      },
     };
   }
 };

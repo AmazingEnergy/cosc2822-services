@@ -1,14 +1,16 @@
-const AWS = require("aws-sdk");
+const { DynamoDBClient, GetItemCommand } = require("@aws-sdk/client-dynamodb");
 
-// Initialize AWS SDK clients
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
-const tableName = "Product";
+const client = new DynamoDBClient({
+  region: process.env.AWS_REGION || "ap-southeast-1",
+});
+
+const tableName = process.env.TABLE_NAME || "ProductV2";
 
 exports.handler = async (event) => {
   console.log("Received Event: ", event);
 
   try {
-    if (!event.skuId || !event.parentSkuId) {
+    if (!event.skuId) {
       return {
         statusCode: 400,
         body: { error: "Missing product skuId" },
@@ -21,21 +23,21 @@ exports.handler = async (event) => {
         skuId: {
           S: event.skuId,
         },
-        parentSkuId: {
-          S: event.parentSkuId,
-        },
       },
     };
 
     console.log("Params: ", JSON.stringify(params));
 
-    let data = await dynamoDb.getItem(params).promise();
+    const command = new GetItemCommand(params);
+    const data = await client.send(command);
+
     if (!data.Item) {
       return {
         statusCode: 404,
         body: { error: "[NotFound] Product not found" },
       };
     }
+
     return {
       statusCode: 200,
       body: data.Item,

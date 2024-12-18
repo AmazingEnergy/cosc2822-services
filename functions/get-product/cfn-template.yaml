@@ -96,21 +96,13 @@ Resources:
 
   # https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-custom-integrations.html
 
-  ParentApiGatewayResource:
+  ApiGatewayResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       ParentId:
         Fn::ImportValue: !Sub "${EndpointsStack}-ProductResourceId"
-      PathPart: "{parentSkuId}"
-
-  ApiGatewayResource:
-    Type: "AWS::ApiGateway::Resource"
-    Properties:
-      RestApiId:
-        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
-      ParentId: !Ref ParentApiGatewayResource
       PathPart: "{skuId}"
 
   ApiGatewayMethod:
@@ -121,11 +113,7 @@ Resources:
       ResourceId: !Ref ApiGatewayResource
       HttpMethod: GET
       AuthorizationType: NONE
-      RequestParameters:
-        {
-          "method.request.path.parentSkuId": true,
-          "method.request.path.skuId": true,
-        }
+      RequestParameters: { "method.request.path.skuId": true }
       MethodResponses:
         - StatusCode: "200"
           ResponseParameters:
@@ -147,9 +135,7 @@ Resources:
             - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
             - LambdaArn: !GetAtt LambdaFunction.Arn
         RequestTemplates:
-          {
-            "application/json": '{"skuId": "$input.params(''skuId'')", "parentSkuId": "$input.params(''parentSkuId'')"}',
-          }
+          { "application/json": '{"skuId": "$input.params(''skuId'')"}' }
         IntegrationResponses:
           - StatusCode: 200
             SelectionPattern: ""
@@ -165,10 +151,6 @@ Resources:
               application/json: $input.json('$.body')
           - StatusCode: 500
             SelectionPattern: ".*\\[InternalServerError\\].*"
-            ResponseTemplates:
-              application/json: $input.json('$.body')
-          - StatusCode: 500
-            SelectionPattern: ".*"
             ResponseTemplates:
               application/json: $input.json('$.body')
 

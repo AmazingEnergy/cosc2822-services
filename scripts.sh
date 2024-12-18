@@ -90,6 +90,7 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
       sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" "$dir/cfn-template-params.json"
       sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" "$dir/cfn-template-params.json"
       sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" "$dir/cfn-template-params.json"
+      sed -i -e "s/<FunctionRepository>/$function_name-func/g" "$dir/cfn-template-params.json"
 
       non_prefix_dir=${dir#./}
       ./cli/002-run-cfn.sh "$function_name-function-stack" "$non_prefix_dir/cfn-template.yaml" "$non_prefix_dir/cfn-template-params.json" $REGION

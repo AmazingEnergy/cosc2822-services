@@ -5,7 +5,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const tableName = "Product";
 
 exports.handler = async (event) => {
-  console.log("Event: ", event);
+  console.log("Received Event: ", event);
   try {
     let params = {
       TableName: tableName,
@@ -13,7 +13,7 @@ exports.handler = async (event) => {
       FilterExpression: "attribute_exists(parentSkuId)",
     };
 
-    if (event.lastEvaluatedKey) {
+    if (event.lastEvaluatedKey && event.lastEvaluatedKey !== "") {
       params.ExclusiveStartKey = event.lastEvaluatedKey;
     }
 

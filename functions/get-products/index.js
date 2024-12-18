@@ -20,8 +20,8 @@ exports.handler = async (event) => {
 
     if (event.name) {
       params.FilterExpression +=
-        " AND begins_with(name, :name) AND contains(name, :name)";
-      params.ExpressionAttributeValues[":name"] = { S: event.name };
+        " AND begins_with(name, :search) AND contains(name, :search)";
+      params.ExpressionAttributeValues[":search"] = { S: event.name };
     }
 
     let data = await dynamoDb.scan(params).promise();

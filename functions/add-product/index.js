@@ -5,6 +5,7 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const tableName = "Product";
 
 exports.handler = async (event) => {
+  console.log("Received Event: ", event);
   try {
     if (!event.skuId) {
       return {

@@ -1,8 +1,10 @@
-const AWS = require("aws-sdk");
+const { DynamoDBClient, ScanCommand } = require("@aws-sdk/client-dynamodb");
 
-// Initialize AWS SDK clients
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
-const tableName = "Product";
+const client = new DynamoDBClient({
+  region: process.env.AWS_REGION || "ap-southeast-1",
+});
+
+const tableName = process.env.TABLE_NAME || "Product";
 
 exports.handler = async (event) => {
   console.log("Received Event: ", event);
@@ -11,9 +13,13 @@ exports.handler = async (event) => {
       TableName: tableName,
       Limit: event.limit || 10,
       FilterExpression:
-        "attribute_exists(parentSkuId) AND isActive = :isActive",
+        "attribute_exists(#productSkuId) AND #isActive = :active ",
+      ExpressionAttributeNames: {
+        "#productSkuId": "productSkuId",
+        "#isActive": "isActive",
+      },
       ExpressionAttributeValues: {
-        ":isActive": { BOOL: true },
+        ":active": { BOOL: true },
       },
     };
 
@@ -22,17 +28,15 @@ exports.handler = async (event) => {
     }
 
     if (event.name) {
-      params.FilterExpression +=
-        " AND begins_with(#name, :search) AND contains(#name, :search)";
-      params.ExpressionAttributeNames = {
-        "#name": "name",
-      };
-      params.ExpressionAttributeValues[":search"] = { S: event.name };
+      params.FilterExpression += " AND begins_with(#name, :prefix)";
+      params.ExpressionAttributeNames["#name"] = "name";
+      params.ExpressionAttributeValues[":prefix"] = { S: event.name };
     }
 
     console.log("Params: ", JSON.stringify(params));
 
-    let data = await dynamoDb.scan(params).promise();
+    const command = new ScanCommand(params);
+    const data = await client.send(command);
 
     return {
       statusCode: 200,

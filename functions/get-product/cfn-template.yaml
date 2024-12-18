@@ -110,8 +110,7 @@ Resources:
     Properties:
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
-      ParentId:
-        Fn::ImportValue: !Sub "${EndpointsStack}-ParentApiGatewayResource"
+      ParentId: !Ref ParentApiGatewayResource
       PathPart: "{skuId}"
 
   ApiGatewayMethod:

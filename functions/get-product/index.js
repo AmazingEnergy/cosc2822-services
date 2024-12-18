@@ -5,6 +5,8 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const tableName = "Product";
 
 exports.handler = async (event) => {
+  console.log("Received Event: ", event);
+
   try {
     if (!event.skuId || !event.parentSkuId) {
       return {
@@ -24,6 +26,9 @@ exports.handler = async (event) => {
         },
       },
     };
+
+    console.log("Params: ", JSON.stringify(params));
+
     let data = await dynamoDb.getItem(params).promise();
     if (!data.Item) {
       return {

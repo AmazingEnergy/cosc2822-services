@@ -30,6 +30,8 @@ exports.handler = async (event) => {
       params.ExpressionAttributeValues[":search"] = { S: event.name };
     }
 
+    console.log("Params: ", JSON.stringify(params));
+
     let data = await dynamoDb.scan(params).promise();
 
     return {

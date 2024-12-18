@@ -96,14 +96,23 @@ Resources:
 
   # https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-custom-integrations.html
 
-  ApiGatewayResource:
+  ParentApiGatewayResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       ParentId:
         Fn::ImportValue: !Sub "${EndpointsStack}-ProductResourceId"
-      PathPart: "{parentSkuId}/{skuId}"
+      PathPart: "{parentSkuId}"
+
+  ApiGatewayResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ParentId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-ParentApiGatewayResource"
+      PathPart: "{skuId}"
 
   ApiGatewayMethod:
     Type: AWS::ApiGateway::Method

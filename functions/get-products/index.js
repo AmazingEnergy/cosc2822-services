@@ -11,6 +11,7 @@ exports.handler = async (event) => {
       TableName: tableName,
       Limit: event.limit || 10,
       FilterExpression: "attribute_exists(parentSkuId)",
+      ExpressionAttributeValues: {},
     };
 
     if (event.lastEvaluatedKey && event.lastEvaluatedKey !== "") {
@@ -18,8 +19,8 @@ exports.handler = async (event) => {
     }
 
     if (event.name) {
-      params.FilterExpression =
-        "attribute_exists(parentSkuId) AND begins_with(name, :prefix) AND contains(name, :name)";
+      params.FilterExpression +=
+        " AND begins_with(name, :name) AND contains(name, :name)";
       params.ExpressionAttributeValues[":name"] = { S: event.name };
     }
 

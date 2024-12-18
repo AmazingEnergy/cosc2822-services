@@ -5,11 +5,11 @@ Parameters:
   FunctionName:
     Type: String
     Description: function name
-    Default: GetProducts
+    Default: AddProduct
   FunctionRepository:
     Type: String
     Description: function ECR repository
-    Default: get-products-func
+    Default: add-product-func
   ApiGatewayStack:
     Type: String
     Description: stack name
@@ -104,14 +104,10 @@ Resources:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       ResourceId:
         Fn::ImportValue: !Sub "${EndpointsStack}-ProductResourceId"
-      HttpMethod: GET
-      AuthorizationType: NONE
-      RequestParameters:
-        {
-          "method.request.querystring.lastEvaluatedKey": false,
-          "method.request.querystring.limit": false,
-          "method.request.querystring.name": false,
-        }
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
       MethodResponses:
         - StatusCode: "200"
           ResponseParameters:
@@ -132,31 +128,28 @@ Resources:
           Fn::Sub:
             - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
             - LambdaArn: !GetAtt LambdaFunction.Arn
-        RequestTemplates:
-          {
-            "application/json": '{"lastEvaluatedKey":"$input.params(''lastEvaluatedKey'')", "limit":"$input.params(''limit'')", "name":"$input.params(''name'')"}',
-          }
+        RequestTemplates: { "application/json": "$input.body" }
         IntegrationResponses:
           - StatusCode: 200
             SelectionPattern: ""
             ResponseTemplates:
-              application/json: $input.json('$').body
+              application/json: $input.json('$')
           - StatusCode: 400
             SelectionPattern: ".*\\[BadRequest\\].*"
             ResponseTemplates:
-              application/json: $input.json('$').body
+              application/json: '{"error": "Bad Request"}'
           - StatusCode: 404
             SelectionPattern: ".*\\[NotFound\\].*"
             ResponseTemplates:
-              application/json: $input.json('$').body
+              application/json: '{"error": "Not Found"}'
           - StatusCode: 500
             SelectionPattern: ".*\\[InternalServerError\\].*"
             ResponseTemplates:
-              application/json: $input.json('$').body
+              application/json: '{"error": "Internal Server Error"}'
           - StatusCode: 500
             SelectionPattern: ".*"
             ResponseTemplates:
-              application/json: $input.json('$').body
+              application/json: '{"error": "An unknown error occurred."}'
 
   # https://docs.aws.amazon.com/lambda/latest/dg/permissions-granting-access.html
   # https://stackoverflow.com/a/39905743

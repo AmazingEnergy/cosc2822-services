@@ -113,7 +113,20 @@ fi
 
 if [[ "$ACTION" == "create-repository" ]]; then
 	chmod +x ./cli/017-create-repository.sh
-	./cli/017-create-repository.sh $CONTAINER_REPOSITORY $REGION
+
+  for dir in ./functions/*/; do
+    if [ -d "$dir" ]; then
+      function_name=$(basename "$dir")
+      if [ ! -f "$dir/Dockerfile" ]; then
+        echo "Skipping $function_name"
+        continue
+      fi
+
+      ./cli/017-create-repository.sh "$function_name-func" $REGION
+      docker build -t $CONTAINER_REGISTRY/"$function_name-func":$IMAGE_TAG "$dir"
+      docker push $CONTAINER_REGISTRY/"$function_name-func":$IMAGE_TAG
+    fi
+  done
 	exit 0
 fi
 

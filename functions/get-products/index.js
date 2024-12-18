@@ -8,30 +8,43 @@ exports.handler = async (event) => {
   try {
     let params = {
       TableName: tableName,
-      Limit: 10,
-      // Add your KeyConditionExpression and other query parameters here
-      // Example:
-      // KeyConditionExpression: 'partitionKey = :partitionKeyValue',
-      // ExpressionAttributeValues: {
-      //   ':partitionKeyValue': 'yourPartitionKeyValue'
-      // }
+      Limit: event.limit || 10,
+      ScanFilter: {
+        parentSkuId: {
+          ComparisonOperator: "NOT_NULL",
+        },
+      },
     };
 
     if (event.lastEvaluatedKey) {
       params.ExclusiveStartKey = event.lastEvaluatedKey;
     }
 
+    if (event.name) {
+      params.ScanFilter.name = {
+        ComparisonOperator: "BEGINS_WITH",
+        AttributeValueList: [
+          {
+            S: event.name,
+          },
+        ],
+      };
+    }
+
     let data = await dynamoDb.scan(params).promise();
 
     return {
-      items: data.Items,
-      lastEvaluatedKey: data.LastEvaluatedKey,
+      statusCode: 200,
+      body: {
+        items: data.Items,
+        lastEvaluatedKey: data.LastEvaluatedKey,
+      },
     };
   } catch (error) {
     console.error(error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Something went wrong." }),
+      body: { error: "Something went wrong." },
     };
   }
 };

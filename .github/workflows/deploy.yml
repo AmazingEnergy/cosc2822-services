@@ -57,10 +57,7 @@ jobs:
           IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
         run: |
           chmod +x ./scripts.sh
-          ./scripts.sh --action create-repository --container-repository get-products-func --region $region
-          docker build -t $REGISTRY/get-products-func:$IMAGE_TAG ./functions/get-products
-          docker push $REGISTRY/get-products-func:$IMAGE_TAG
-          echo "image=$REGISTRY/get-products-func:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          ./scripts.sh --action create-repository --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $region
 
       ################################################
       # Deploy Core Service
@@ -97,7 +94,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: ${{ env.CORE_CONTAINER_NAME }}
-          image: ${{ steps.build-image.outputs.image }}
+          image: ${{ steps.core-build-image.outputs.image }}
 
       - name: Core | Deploy Amazon ECS task definition
         id: core-deploy

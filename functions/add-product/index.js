@@ -6,13 +6,11 @@ const client = new DynamoDBClient({
 
 const tableName = process.env.TABLE_NAME || "ProductV2";
 
-exports.handler = async (event) => {
+exports.handler = async (event, context, callback) => {
   console.log("Received Event: ", event);
   try {
     if (!event.skuId) {
-      return {
-        errorMessages: "[BadRequest] skuId is missing.",
-      };
+      callback(new Error("[BadRequest] skuId is missing."));
     }
 
     if (!event.name) {

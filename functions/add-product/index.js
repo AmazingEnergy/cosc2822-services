@@ -30,7 +30,7 @@ exports.handler = async (event, context, callback) => {
     }
 
     if (
-      !event.specs &&
+      event.specs &&
       (typeof event.specs !== "object" ||
         !Object.keys(event.specs).layer1Name ||
         !Object.keys(event.specs).layer1Value ||
@@ -54,19 +54,19 @@ exports.handler = async (event, context, callback) => {
         skuId: {
           S: event.skuId,
         },
-        "#": {
+        name: {
           S: event.name,
         },
         price: {
           N: event.price.toString(),
         },
-        "#d": {
+        description: {
           S: event.description || "",
         },
         category: {
           S: event.category,
         },
-        "#t": {
+        type: {
           S: event.type,
         },
         isActive: {
@@ -76,13 +76,11 @@ exports.handler = async (event, context, callback) => {
           S: event.stockCode,
         },
       },
-      ExpressionAttributeNames: {
-        "#n": "name",
-        "#t": "type",
-        "#d": "description",
-      },
       ConditionExpression:
         "attribute_not_exists(skuId) AND attribute_not_exists(stockCode) AND attribute_not_exists(#n)",
+      ExpressionAttributeNames: {
+        "#n": "name",
+      },
     };
 
     if (event.parentSkuId) {

@@ -19,7 +19,7 @@ echo "Found existing repository: $EXISTING_REPOSITORY"
 echo ""
 
 if [[ -z "$EXISTING_REPOSITORY" || "$EXISTING_REPOSITORY" == "None" ]]; then
-	aws ecr create-repository --repository-name get-products-func --region $REGION
+	aws ecr create-repository --repository-name $EXISTING_REPOSITORY --region $REGION
 fi
 
 aws ecr set-repository-policy \

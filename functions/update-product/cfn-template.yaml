@@ -1,0 +1,166 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to create get-products-function
+
+Parameters:
+  FunctionName:
+    Type: String
+    Description: function name
+    Default: GetProduct
+  FunctionRepository:
+    Type: String
+    Description: function ECR repository
+  ApiGatewayStack:
+    Type: String
+    Description: stack name
+  EndpointsStack:
+    Type: String
+    Description: stack name
+  ContainerRegistry:
+    Type: String
+    Description: container registry
+  ImageTag:
+    Type: String
+    Description: image tag
+
+Resources:
+  # https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
+  # https://docs.aws.amazon.com/lambda/latest/dg/permissions-managed-policies.html
+  # https://docs.aws.amazon.com/lambda/latest/dg/images-create.html
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaECRImageRetrievalPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:SetRepositoryPolicy
+                  - ecr:GetRepositoryPolicy
+                  - ecr:InitiateLayerUpload
+                  - dynamodb:BatchGetItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateIte
+                Resource: "*"
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: !Ref FunctionName
+      Code:
+        ImageUri: !Sub "${ContainerRegistry}/${FunctionRepository}:${ImageTag}"
+      Timeout: 30
+      MemorySize: 128
+      LoggingConfig:
+        ApplicationLogLevel: INFO
+        LogFormat: JSON
+        LogGroup:
+          Fn::Join:
+            - ""
+            - - "/aws/lambda/"
+              - !Ref FunctionName
+        SystemLogLevel: INFO
+
+  ApiGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - "/aws/lambda/"
+            - !Ref LambdaFunction
+      RetentionInDays: 1
+
+  # https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-custom-integrations.html
+
+  ApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-ProductSkuIdResourceId"
+      HttpMethod: PUT
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters: { "method.request.path.skuId": true }
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+      Integration:
+        Type: AWS
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
+            - LambdaArn: !GetAtt LambdaFunction.Arn
+        RequestTemplates:
+          {
+            "application/json": '{"skuId": "$input.params(''skuId'')", "body": "$input.body"}',
+          }
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$.body')
+          - StatusCode: 400
+            SelectionPattern: ".*\\[BadRequest\\].*"
+            ResponseTemplates:
+              application/json: $input.json('$.body')
+          - StatusCode: 404
+            SelectionPattern: ".*\\[NotFound\\].*"
+            ResponseTemplates:
+              application/json: $input.json('$.body')
+          - StatusCode: 500
+            SelectionPattern: ".*\\[InternalServerError\\].*"
+            ResponseTemplates:
+              application/json: $input.json('$.body')
+
+  # https://docs.aws.amazon.com/lambda/latest/dg/permissions-granting-access.html
+  # https://stackoverflow.com/a/39905743
+
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LambdaFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Sub:
+          - "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ApiId}/*/*/*"
+          - ApiId:
+              Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"

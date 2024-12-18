@@ -113,7 +113,7 @@ Resources:
           "method.request.querystring.name": false,
         }
       MethodResponses:
-        - StatusCode: "200"
+        - StatusCode: 200
           ResponseParameters:
             method.response.header.Content-Type: true
         - StatusCode: 400

@@ -11,8 +11,7 @@ exports.handler = async (event) => {
   try {
     if (!event.skuId) {
       return {
-        statusCode: 400,
-        body: { error: "[BadRequest] skuId is missing." },
+        errorMessages: "[BadRequest] skuId is missing.",
       };
     }
 

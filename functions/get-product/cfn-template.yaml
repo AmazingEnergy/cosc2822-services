@@ -107,7 +107,7 @@ Resources:
       AuthorizationType: NONE
       RequestParameters: { "method.request.path.skuId": true }
       MethodResponses:
-        - StatusCode: "200"
+        - StatusCode: 200
           ResponseParameters:
             method.response.header.Content-Type: true
         - StatusCode: 400

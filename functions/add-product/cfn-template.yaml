@@ -109,7 +109,7 @@ Resources:
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
       MethodResponses:
-        - StatusCode: "200"
+        - StatusCode: 200
           ResponseParameters:
             method.response.header.Content-Type: true
         - StatusCode: 400

@@ -103,7 +103,7 @@ Resources:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       ParentId:
         Fn::ImportValue: !Sub "${EndpointsStack}-ProductResourceId"
-      PathPart: "{id}"
+      PathPart: "{parentSkuId}/{skuId}"
 
   ApiGatewayMethod:
     Type: AWS::ApiGateway::Method
@@ -113,7 +113,11 @@ Resources:
       ResourceId: !Ref ApiGatewayResource
       HttpMethod: GET
       AuthorizationType: NONE
-      RequestParameters: { "method.request.path.skuId": true }
+      RequestParameters:
+        {
+          "method.request.path.parentSkuId": true,
+          "method.request.path.skuId": true,
+        }
       MethodResponses:
         - StatusCode: "200"
           ResponseParameters:
@@ -135,7 +139,9 @@ Resources:
             - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations"
             - LambdaArn: !GetAtt LambdaFunction.Arn
         RequestTemplates:
-          { "application/json": '{"skuId": "$input.params(''skuId'')"}' }
+          {
+            "application/json": '{"skuId": "$input.params(''skuId'')", "parentSkuId": "$input.params(''parentSkuId'')"}',
+          }
         IntegrationResponses:
           - StatusCode: 200
             SelectionPattern: ""

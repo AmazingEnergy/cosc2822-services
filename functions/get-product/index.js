@@ -6,7 +6,7 @@ const tableName = "Product";
 
 exports.handler = async (event) => {
   try {
-    if (!event.skuId) {
+    if (!event.skuId || !event.parentSkuId) {
       return {
         statusCode: 400,
         body: { error: "Missing product skuId" },
@@ -16,10 +16,15 @@ exports.handler = async (event) => {
     let params = {
       TableName: tableName,
       Key: {
-        skuId: event.skuId,
+        skuId: {
+          S: event.skuId,
+        },
+        parentSkuId: {
+          S: event.parentSkuId,
+        },
       },
     };
-    let data = await dynamoDb.get(params).promise();
+    let data = await dynamoDb.getItem(params).promise();
     if (!data.Item) {
       return {
         statusCode: 404,

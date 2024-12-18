@@ -82,7 +82,7 @@ exports.handler = async (event, context, callback) => {
         "#d": "description",
       },
       ConditionExpression:
-        "attribute_not_exists(skuId) AND attribute_not_exists(stockCode) AND attribute_not_exists(name)",
+        "attribute_not_exists(skuId) AND attribute_not_exists(stockCode) AND attribute_not_exists(#n)",
     };
 
     if (event.parentSkuId) {

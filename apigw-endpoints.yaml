@@ -13,8 +13,10 @@ Mappings:
   Resources:
     Product:
       ResourcePath: "products"
+      ProductSkuIdResourcePath: "{skuId}"
     Inventory:
       ResourcePath: "inventories"
+      InventoryCodeResourcePath: "{code}"
     Promotion:
       ResourcePath: "promotion"
       PromotionCodeResourcePath: "codes"
@@ -22,10 +24,12 @@ Mappings:
       ApplyPromotionResourcePath: "apply"
     Cart:
       ResourcePath: "carts"
+      CartIdResourcePath: "{id}"
       PayCartResourcePath: "pay"
       SubmitCartResourcePath: "submit"
     Order:
       ResourcePath: "orders"
+      OrderIdResourcePath: "{id}"
 
 Resources:
   ###############################################
@@ -42,6 +46,15 @@ Resources:
       PathPart:
         Fn::FindInMap: [Resources, Product, ResourcePath]
 
+  ProductSkuIdResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref ProductResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Product, ProductSkuIdResourcePath]
+
   InventoryResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
@@ -51,6 +64,15 @@ Resources:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       PathPart:
         Fn::FindInMap: [Resources, Inventory, ResourcePath]
+
+  InventoryCodeResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref InventoryResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Inventory, InventoryCodeResourcePath]
 
   PromotionResource:
     Type: "AWS::ApiGateway::Resource"
@@ -99,10 +121,19 @@ Resources:
       PathPart:
         Fn::FindInMap: [Resources, Cart, ResourcePath]
 
-  PayCartResource:
+  CartIdResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
       ParentId: !Ref CartResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Cart, CartIdResourcePath]
+
+  PayCartResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref CartIdResource
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       PathPart:
@@ -111,7 +142,7 @@ Resources:
   SubmitCartResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
-      ParentId: !Ref CartResource
+      ParentId: !Ref CartIdResource
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       PathPart:
@@ -127,6 +158,15 @@ Resources:
       PathPart:
         Fn::FindInMap: [Resources, Order, ResourcePath]
 
+  OrderIdResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref OrderResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Order, OrderIdResourcePath]
+
 Outputs:
   ProductResourceId:
     Value: !GetAtt ProductResource.ResourceId
@@ -134,12 +174,24 @@ Outputs:
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-ProductResourceId"
+  ProductSkuIdResourceId:
+    Value: !GetAtt ProductSkuIdResource.ResourceId
+    Description: Id of ProductSkuId resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-ProductSkuIdResourceId"
   InventoryResourceId:
     Value: !GetAtt InventoryResource.ResourceId
     Description: Id of Inventory resource
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-InventoryResourceId"
+  InventoryCodeResourceId:
+    Value: !GetAtt InventoryCodeResource.ResourceId
+    Description: Id of InventoryCode resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-InventoryCodeResourceId"
   PromotionResourceId:
     Value: !GetAtt PromotionResource.ResourceId
     Description: Id of Promotion resource
@@ -170,6 +222,12 @@ Outputs:
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-CartResourceId"
+  CartIdResourceId:
+    Value: !GetAtt CartIdResource.ResourceId
+    Description: Id of CartId resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-CartIdResourceId"
   PayCartResourceId:
     Value: !GetAtt PayCartResource.ResourceId
     Description: Id of PayCart resource
@@ -188,3 +246,9 @@ Outputs:
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-OrderResourceId"
+  OrderIdResourceId:
+    Value: !GetAtt OrderIdResource.ResourceId
+    Description: Id of OrderId resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-OrderIdResourceId"

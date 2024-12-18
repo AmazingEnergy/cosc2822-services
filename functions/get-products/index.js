@@ -49,7 +49,7 @@ exports.handler = async (event) => {
     console.error(error);
     return {
       statusCode: 500,
-      body: { error: "Something went wrong." },
+      body: { error: "[InternalServerError] Something went wrong." },
     };
   }
 };

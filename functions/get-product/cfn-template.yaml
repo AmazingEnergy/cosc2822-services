@@ -102,7 +102,7 @@ Resources:
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       ResourceId:
-        Fn::ImportValue: !Sub "${ApiGatewayStack}-ProductSkuIdResourceId"
+        Fn::ImportValue: !Sub "${EndpointsStack}-ProductSkuIdResourceId"
       HttpMethod: GET
       AuthorizationType: NONE
       RequestParameters: { "method.request.path.skuId": true }

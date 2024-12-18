@@ -1,4 +1,5 @@
 const { DynamoDBClient, GetItemCommand } = require("@aws-sdk/client-dynamodb");
+const { unmarshall } = require("@aws-sdk/util-dynamodb");
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
@@ -34,7 +35,7 @@ exports.handler = async (event, context, callback) => {
 
     return {
       statusCode: 200,
-      body: data.Item,
+      body: unmarshall(data.Item),
     };
   } catch (error) {
     console.error(error);

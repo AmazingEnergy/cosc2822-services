@@ -32,10 +32,10 @@ exports.handler = async (event, context, callback) => {
     if (
       event.specs &&
       (typeof event.specs !== "object" ||
-        !Object.keys(event.specs).layer1Name ||
-        !Object.keys(event.specs).layer1Value ||
-        !Object.keys(event.specs).layer2Name ||
-        !Object.keys(event.specs).layer2Value)
+        !event.specs.layer1Name ||
+        !event.specs.layer1Value ||
+        !event.specs.layer2Name ||
+        !event.specs.layer2Value)
     ) {
       callback(
         new Error(
@@ -126,7 +126,9 @@ exports.handler = async (event, context, callback) => {
 
     return {
       statusCode: 200,
-      body: data.Item,
+      body: {
+        skuId: event.skuId,
+      },
     };
   } catch (error) {
     if (error.code === "ConditionalCheckFailedException") {

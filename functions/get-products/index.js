@@ -12,15 +12,15 @@ exports.handler = async (event, context, callback) => {
     let params = {
       TableName: tableName,
       Limit: event.limit || 10,
-      FilterExpression:
-        "attribute_exists(#productSkuId) AND #isActive = :active ",
-      ExpressionAttributeNames: {
-        "#productSkuId": "productSkuId",
-        "#isActive": "isActive",
-      },
-      ExpressionAttributeValues: {
-        ":active": { BOOL: true },
-      },
+      // FilterExpression:
+      //   "attribute_exists(#productSkuId) AND #isActive = :active",
+      // ExpressionAttributeNames: {
+      //   "#productSkuId": "productSkuId",
+      //   "#isActive": "isActive",
+      // },
+      // ExpressionAttributeValues: {
+      //   ":active": { BOOL: true },
+      // },
     };
 
     if (event.lastEvaluatedKey && event.lastEvaluatedKey !== "") {

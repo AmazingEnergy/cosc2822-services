@@ -133,23 +133,23 @@ Resources:
           - StatusCode: 200
             SelectionPattern: ""
             ResponseTemplates:
-              application/json: $input.json('$')
+              application/json: $input.json('$.body')
           - StatusCode: 400
             SelectionPattern: ".*\\[BadRequest\\].*"
             ResponseTemplates:
-              application/json: '{"error": "Bad Request"}'
+              application/json: $input.json('$.body')
           - StatusCode: 404
             SelectionPattern: ".*\\[NotFound\\].*"
             ResponseTemplates:
-              application/json: '{"error": "Not Found"}'
+              application/json: $input.json('$.body')
           - StatusCode: 500
             SelectionPattern: ".*\\[InternalServerError\\].*"
             ResponseTemplates:
-              application/json: '{"error": "Internal Server Error"}'
+              application/json: $input.json('$.body')
           - StatusCode: 500
             SelectionPattern: ".*"
             ResponseTemplates:
-              application/json: '{"error": "An unknown error occurred."}'
+              application/json: $input.json('$.body')
 
   # https://docs.aws.amazon.com/lambda/latest/dg/permissions-granting-access.html
   # https://stackoverflow.com/a/39905743

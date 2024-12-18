@@ -5,15 +5,12 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const tableName = "Product";
 
 exports.handler = async (event) => {
+  console.log("Event: ", event);
   try {
     let params = {
       TableName: tableName,
       Limit: event.limit || 10,
-      ScanFilter: {
-        parentSkuId: {
-          ComparisonOperator: "NOT_NULL",
-        },
-      },
+      FilterExpression: "attribute_exists(parentSkuId)",
     };
 
     if (event.lastEvaluatedKey) {
@@ -21,14 +18,9 @@ exports.handler = async (event) => {
     }
 
     if (event.name) {
-      params.ScanFilter.name = {
-        ComparisonOperator: "BEGINS_WITH",
-        AttributeValueList: [
-          {
-            S: event.name,
-          },
-        ],
-      };
+      params.FilterExpression =
+        "attribute_exists(parentSkuId) AND begins_with(name, :prefix) AND contains(name, :name)";
+      params.ExpressionAttributeValues[":name"] = { S: event.name };
     }
 
     let data = await dynamoDb.scan(params).promise();

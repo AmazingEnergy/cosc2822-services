@@ -139,7 +139,7 @@ exports.handler = async (event, context, callback) => {
     console.log("Created product data: ", JSON.stringify(productResponse));
 
     let inventoryResponse = await client.send(
-      PutItemCommand({
+      new PutItemCommand({
         TableName: inventoryTableName,
         Item: {
           stockCode: {

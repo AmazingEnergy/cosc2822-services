@@ -68,15 +68,15 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
 
 	sed -i -e "s/<Route53DNSStack>/route53-dns-stack/g" ./apigw-endpoints-params.json
 	sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" ./apigw-endpoints-params.json
-
 	./cli/002-run-cfn.sh apigw-endpoints-stack apigw-endpoints.yaml apigw-endpoints-params.json $REGION
 
-	# sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" ./functions/get-products/cfn-template-params.json
-	# sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" ./functions/get-products/cfn-template-params.json
-	# sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" ./functions/get-products/cfn-template-params.json
-	# sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" ./functions/get-products/cfn-template-params.json
-
-	# ./cli/002-run-cfn.sh get-products-function-stack functions/get-products/cfn-template.yaml functions/get-products/cfn-template-params.json $REGION
+  sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" ecs-tasks-params.json
+  sed -i -e "s/<NetworkStackName>/network-stack/g" ecs-tasks-params.json
+  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
+  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
+  sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" ecs-tasks-params.json
+  sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" ecs-tasks-params.json
+  ./cli/002-run-cfn.sh ecs-tasks-stack ecs-tasks.yaml ecs-tasks-params.json $REGION
   
   for dir in ./functions/*/; do
     if [ -d "$dir" ]; then
@@ -96,14 +96,6 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
       ./cli/002-run-cfn.sh "$function_name-function-stack" "$non_prefix_dir/cfn-template.yaml" "$non_prefix_dir/cfn-template-params.json" $REGION
     fi
   done
-
-  sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<NetworkStackName>/network-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" ecs-tasks-params.json
-  sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" ecs-tasks-params.json
-  ./cli/002-run-cfn.sh ecs-tasks-stack ecs-tasks.yaml ecs-tasks-params.json $REGION
 	exit 0
 fi
 

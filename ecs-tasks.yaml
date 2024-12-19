@@ -51,7 +51,7 @@ Resources:
       TaskRoleArn: !GetAtt ECSTaskRole.Arn
       ContainerDefinitions:
         - Name: !Ref TaskContainerName
-          Image: !Sub "${ContainerRegistry}/${ImageRepositoryName}::${ImageTag}"
+          Image: !Sub "${ContainerRegistry}/${ImageRepositoryName}:${ImageTag}"
           Essential: true
           PortMappings:
             - Name: !Ref TaskFamily
@@ -65,7 +65,7 @@ Resources:
               AppProtocol: "http"
               Protocol: "tcp"
           Environment:
-            - Name: "ENVIRONMENT"
+            - Name: "NODE_ENV"
               Value: "development"
           LogConfiguration:
             LogDriver: "awslogs"

@@ -61,7 +61,7 @@ jobs:
           ./scripts.sh --action create-repository --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $REGION
 
       ################################################
-      # Deploy Core Service
+      # Build Core Service
       ################################################
 
       - name: Core | Build & Push to Amazon ECR
@@ -79,12 +79,14 @@ jobs:
 
       - name: Core | Download task definition
         id: core-download-task-def
+        if: false
         continue-on-error: true
         run: |
           aws ecs describe-task-definition --task-definition ${{ env.CORE_TASK_DEFINITION }} --query taskDefinition > task-definition.json
 
       - name: Core | Fill in the new image ID in the Amazon ECS task definition
         id: core-task-def
+        if: false
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         # https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-amazon-elastic-container-service
         # https://github.com/aws-actions/amazon-ecs-deploy-task-definition#task-definition-file
@@ -96,6 +98,7 @@ jobs:
 
       - name: Core | Deploy Amazon ECS task definition
         id: core-deploy
+        if: false
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         continue-on-error: true
         with:

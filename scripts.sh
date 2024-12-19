@@ -114,8 +114,8 @@ fi
 
 if [[ "$ACTION" == "deploy-agw" ]]; then
   chmod +x ./cli/008-get-cfn-output.sh
-	API_GW_ID=$(./cli/008-get-cfn-output.sh api-gateway-stack ApiGateway $REGION)
-
+	API_GW_ID=$(./cli/008-get-cfn-output.sh api-gateway-stack ApiGatewayId $REGION)
+  echo "API Gateway ID: $API_GW_ID"
   chmod +x ./cli/019-auto-deploy-agw.sh
   ./cli/019-auto-deploy-agw.sh $API_GW_ID dev $IMAGE_TAG $REGION
   exit 0

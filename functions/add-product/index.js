@@ -1,4 +1,8 @@
-const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+const {
+  DynamoDBClient,
+  PutItemCommand,
+  GetItemCommand,
+} = require("@aws-sdk/client-dynamodb");
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
@@ -81,6 +85,7 @@ exports.handler = async (event, context, callback) => {
       ExpressionAttributeNames: {
         "#n": "name",
       },
+      ReturnValues: "ALL_NEW",
     };
 
     if (event.parentSkuId) {
@@ -122,13 +127,24 @@ exports.handler = async (event, context, callback) => {
     console.log("Params: ", JSON.stringify(params));
 
     const command = new PutItemCommand(params);
-    const data = await client.send(command);
+    let data = await client.send(command);
+
+    console.log("Created product data: ", JSON.stringify(data));
+
+    data = await client.send(
+      new GetItemCommand({
+        TableName: tableName,
+        Key: {
+          skuId: {
+            S: event.skuId,
+          },
+        },
+      })
+    );
 
     return {
       statusCode: 200,
-      body: {
-        skuId: event.skuId,
-      },
+      body: data.Item,
     };
   } catch (error) {
     if (error.code === "ConditionalCheckFailedException") {

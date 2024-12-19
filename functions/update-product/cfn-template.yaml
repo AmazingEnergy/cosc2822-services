@@ -130,7 +130,7 @@ Resources:
             - LambdaArn: !GetAtt LambdaFunction.Arn
         RequestTemplates:
           {
-            "application/json": '{"skuId": "$input.params(''skuId'')", "body": "$input.body"}',
+            "application/json": '{"skuId": "$input.params(''skuId'')", "body": $input.json(''$'')}',
           }
         IntegrationResponses:
           - StatusCode: 200

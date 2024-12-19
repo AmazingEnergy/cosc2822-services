@@ -1,4 +1,8 @@
-const { DynamoDBClient, GetItemCommand } = require("@aws-sdk/client-dynamodb");
+const {
+  DynamoDBClient,
+  UpdateItemCommand,
+  GetItemCommand,
+} = require("@aws-sdk/client-dynamodb");
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
@@ -56,18 +60,8 @@ exports.handler = async (event, context, callback) => {
           S: event.skuId,
         },
       },
-      UpdateExpression: `
-        SET
-          #n = :name,
-          #d = :description,
-          #t = :type,
-          category = :category,
-          price = :price,
-          isActive = :isActive,
-          stockCode = :stockCode,
-          imageUrls = :imageUrls,
-          specs = :specs
-      `,
+      UpdateExpression:
+        "SET #n = :name, #d = :description, #t = :type, category = :category, price = :price, isActive = :isActive, stockCode = :stockCode, imageUrls = :imageUrls, specs = :specs",
       ExpressionAttributeValues: {
         ":name": { S: event.body.name },
         ":description": { S: event.body.description },
@@ -82,6 +76,7 @@ exports.handler = async (event, context, callback) => {
         "#d": "description",
         "#t": "type",
       },
+      ReturnValues: "ALL_NEW",
     };
 
     if (event.body.imageUrls && event.body.imageUrls.length > 0) {
@@ -114,12 +109,24 @@ exports.handler = async (event, context, callback) => {
 
     console.log("Params: ", JSON.stringify(params));
 
-    const command = new GetItemCommand(params);
-    const data = await client.send(command);
+    const command = new UpdateItemCommand(params);
+    let data = await client.send(command);
 
+    console.log("Updated product data: ", JSON.stringify(data));
     if (!data.Item) {
       callback(new Error("[NotFound] Product not found"));
     }
+
+    data = await client.send(
+      new GetItemCommand({
+        TableName: tableName,
+        Key: {
+          skuId: {
+            S: event.skuId,
+          },
+        },
+      })
+    );
 
     return {
       statusCode: 200,

@@ -12,7 +12,7 @@ exports.handler = async (event, context, callback) => {
   try {
     let params = {
       TableName: tableName,
-      Limit: event.limit || 10,
+      Limit: int.parse(event.limit) || 10,
       FilterExpression: "attribute_exists(#s) AND #i = :active",
       ExpressionAttributeNames: {
         "#s": "skuId",

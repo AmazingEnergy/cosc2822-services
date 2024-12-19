@@ -10,9 +10,14 @@ const tableName = process.env.TABLE_NAME || "ProductV2";
 exports.handler = async (event, context, callback) => {
   console.log("Received Event: ", event);
   try {
+    limit = 10;
+    if (event.limit && !isNaN(event.limit)) {
+      limit = parseInt(event.limit);
+    }
+
     let params = {
       TableName: tableName,
-      Limit: int.parse(event.limit) || 10,
+      Limit: limit,
       FilterExpression: "attribute_exists(#s) AND #i = :active",
       ExpressionAttributeNames: {
         "#s": "skuId",

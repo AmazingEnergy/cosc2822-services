@@ -136,15 +136,24 @@ Resources:
           - StatusCode: 400
             SelectionPattern: ".*\\[BadRequest\\].*"
             ResponseTemplates:
-              application/json: $input.json('$.body')
+              application/json: |
+                {
+                  "errorMessage": "$input.path('$.errorMessage')"
+                }
           - StatusCode: 404
             SelectionPattern: ".*\\[NotFound\\].*"
             ResponseTemplates:
-              application/json: $input.json('$.body')
+              application/json: |
+                {
+                  "errorMessage": "$input.path('$.errorMessage')"
+                }
           - StatusCode: 500
             SelectionPattern: ".*\\[InternalServerError\\].*"
             ResponseTemplates:
-              application/json: $input.json('$.body')
+              application/json: |
+                {
+                  "errorMessage": "$input.path('$.errorMessage')"
+                }
 
   # https://docs.aws.amazon.com/lambda/latest/dg/permissions-granting-access.html
   # https://stackoverflow.com/a/39905743

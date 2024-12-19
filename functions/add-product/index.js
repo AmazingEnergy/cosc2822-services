@@ -8,29 +8,35 @@ const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
 });
 
-const tableName = process.env.TABLE_NAME || "ProductV2";
+const productTableName = process.env.TABLE_NAME || "ProductV2";
+const inventoryTableName = process.env.INVENTORY_TABLE_NAME || "Inventory";
 
 exports.handler = async (event, context, callback) => {
   console.log("Received Event: ", event);
   try {
     if (!event.skuId) {
       callback(new Error("[BadRequest] skuId is missing."));
+      return;
     }
 
     if (!event.name) {
       callback(new Error("[BadRequest] name is missing."));
+      return;
     }
 
     if (!event.price || event.price <= 0 || isNaN(event.price)) {
       callback(new Error("[BadRequest] price is missing or invalid."));
+      return;
     }
 
     if (!event.category) {
       callback(new Error("[BadRequest] category is missing"));
+      return;
     }
 
     if (!event.type) {
       callback(new Error("[BadRequest] type is missing"));
+      return;
     }
 
     if (
@@ -46,14 +52,16 @@ exports.handler = async (event, context, callback) => {
           "[BadRequest] specs is invalid or missing (layer 1 and layer 2 are required)."
         )
       );
+      return;
     }
 
     if (!event.stockCode) {
       callback(new Error("[BadRequest] stockCode is missing"));
+      return;
     }
 
     let params = {
-      TableName: tableName,
+      TableName: productTableName,
       Item: {
         skuId: {
           S: event.skuId,
@@ -127,13 +135,32 @@ exports.handler = async (event, context, callback) => {
     console.log("Params: ", JSON.stringify(params));
 
     const command = new PutItemCommand(params);
-    let data = await client.send(command);
+    let productResponse = await client.send(command);
+    console.log("Created product data: ", JSON.stringify(productResponse));
 
-    console.log("Created product data: ", JSON.stringify(data));
+    let inventoryResponse = await client.send(
+      PutItemCommand({
+        TableName: inventoryTableName,
+        Item: {
+          stockCode: {
+            S: event.stockCode,
+          },
+          quantity: {
+            N: "0",
+          },
+          isActive: {
+            BOOL: true,
+          },
+        },
+        ConditionExpression: "attribute_not_exists(stockCode)",
+        ReturnValues: "ALL_NEW",
+      })
+    );
+    console.log("Created inventory data: ", JSON.stringify(inventoryResponse));
 
-    data = await client.send(
+    productResponse = await client.send(
       new GetItemCommand({
-        TableName: tableName,
+        TableName: productTableName,
         Key: {
           skuId: {
             S: event.skuId,
@@ -144,7 +171,7 @@ exports.handler = async (event, context, callback) => {
 
     return {
       statusCode: 200,
-      body: data.Item,
+      body: productResponse.Item,
     };
   } catch (error) {
     if (error.code === "ConditionalCheckFailedException") {

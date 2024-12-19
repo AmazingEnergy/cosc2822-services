@@ -122,8 +122,6 @@ exports.handler = async (event, context, callback) => {
         imageUrls = :imageUrls, 
         specs = :specs
       `,
-      ConditionExpression:
-        "attribute_not_exists(stockCode) AND attribute_not_exists(#n)",
       ExpressionAttributeValues: {
         ":name": { S: event.body.name },
         ":description": { S: event.body.description || "" },

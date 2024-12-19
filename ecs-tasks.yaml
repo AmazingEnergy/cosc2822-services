@@ -139,6 +139,10 @@ Resources:
             Principal:
               Service: "ecs-tasks.amazonaws.com"
             Action: "sts:AssumeRole"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+        - "arn:aws:iam::aws:policy/CloudWatchFullAccess"
+        - "arn:aws:iam::aws:policy/CloudWatchFullAccessV2"
       Policies:
         - PolicyName: "ECSTaskExecutionPolicy"
           PolicyDocument:
@@ -146,10 +150,7 @@ Resources:
             Statement:
               - Effect: "Allow"
                 Action:
-                  - "ecr:GetDownloadUrlForLayer"
-                  - "ecr:BatchGetImage"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
+                  - "ssm:GetParameters"
                 Resource: "*"
 
   ECSTaskRole:

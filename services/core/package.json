@@ -1,0 +1,51 @@
+{
+  "name": "s3951127-asm2-cfn-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/app.js",
+  "scripts": {
+    "test": "exit 0",
+    "start": "export NODE_ENV=development && node ./src/app.js",
+    "start:prod": "export NODE_ENV=production && node ./src/app.js",
+    "forever": "export NODE_ENV=development && forever start ./src/app.js",
+    "forever:prod": "export NODE_ENV=production && forever start ./src/app.js",
+    "macStart": "export NODE_ENV=local && nodemon --inspect ./src/app.js",
+    "macStart:prod": "export NODE_ENV=production && nodemon --inspect ./src/app.js",
+    "generate-migration": "node ./src/migrate.js create --name ",
+    "revert-migration": "node ./src/migrate.js down --name ",
+    "revert-migration-to": "node ./src/migrate.js down --to "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luuductrung1234/cosc2825-asm2-cfn-demo.git"
+  },
+  "author": "s3951127",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luuductrung1234/cosc2825-asm2-cfn-demo/issues"
+  },
+  "homepage": "https://github.com/luuductrung1234/cosc2825-asm2-cfn-demo#readme",
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.709.0",
+    "@aws-sdk/client-ssm": "^3.712.0",
+    "@aws-sdk/client-sts": "^3.709.0",
+    "cognito-express": "^3.0.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "*",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-oauth2-jwt-bearer": "^1.6.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.11.5",
+    "sequelize": "^6.37.5",
+    "umzug": "^3.8.2",
+    "url-pattern": "^1.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4",
+    "sequelize-cli": "^6.6.2"
+  }
+}

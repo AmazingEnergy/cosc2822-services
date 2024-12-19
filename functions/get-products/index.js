@@ -29,7 +29,9 @@ exports.handler = async (event, context, callback) => {
     };
 
     if (event.lastEvaluatedKey && event.lastEvaluatedKey !== "") {
-      params.ExclusiveStartKey = event.lastEvaluatedKey;
+      params.ExclusiveStartKey = {
+        skuId: { S: event.lastEvaluatedKey },
+      };
     }
 
     if (event.name) {

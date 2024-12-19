@@ -10,7 +10,7 @@ var _localOnlySecrets = {
   // "/shop/userPoolClientId": process.env.LOCAL_ONLY_COGNITO_USER_POOL_CLIENT_ID,
   // "/shop/userPoolRedirectUri":
   //   process.env.LOCAL_ONLY_COGNITO_USER_POOL_REDIRECT_URI,
-  "/shop/cognitoDomain": process.env.LOCAL_ONLY_COGNITO_DOMAIN,
+  // "/shop/cognitoDomain": process.env.LOCAL_ONLY_COGNITO_DOMAIN,
   "/shop/dbUrl": process.DB_URL_SECRET_NAME,
   "/shop/dbPort": process.DB_PORT_SECRET_NAME,
   "/shop/dbName": process.DB_NAME_SECRET_NAME,

@@ -1,4 +1,5 @@
 const { DynamoDBClient, ScanCommand } = require("@aws-sdk/client-dynamodb");
+const { unmarshall } = require("@aws-sdk/util-dynamodb");
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
@@ -12,15 +13,14 @@ exports.handler = async (event, context, callback) => {
     let params = {
       TableName: tableName,
       Limit: event.limit || 10,
-      // FilterExpression:
-      //   "attribute_exists(#productSkuId) AND #isActive = :active",
-      // ExpressionAttributeNames: {
-      //   "#productSkuId": "productSkuId",
-      //   "#isActive": "isActive",
-      // },
-      // ExpressionAttributeValues: {
-      //   ":active": { BOOL: true },
-      // },
+      FilterExpression: "attribute_exists(#s) AND #i = :active",
+      ExpressionAttributeNames: {
+        "#s": "skuId",
+        "#i": "isActive",
+      },
+      ExpressionAttributeValues: {
+        ":active": { BOOL: true },
+      },
     };
 
     if (event.lastEvaluatedKey && event.lastEvaluatedKey !== "") {
@@ -41,7 +41,7 @@ exports.handler = async (event, context, callback) => {
     return {
       statusCode: 200,
       body: {
-        items: data.Items,
+        items: data.Items.map((item) => unmarshall(item)),
         lastEvaluatedKey: data.LastEvaluatedKey,
       },
     };

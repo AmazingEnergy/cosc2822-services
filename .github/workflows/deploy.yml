@@ -122,6 +122,7 @@ jobs:
           aws s3 ls
           chmod +x ./scripts.sh
           ./scripts.sh --action deploy-all-stacks --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $region
+          ./scripts.sh --action deploy-agw --image-tag $IMAGE_TAG --region $region
           aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE
           aws cloudformation list-stacks --stack-status-filter UPDATE_COMPLETE
           aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --region us-east-1

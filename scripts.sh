@@ -112,6 +112,15 @@ fi
 # Utils
 #######################################################
 
+if [[ "$ACTION" == "deploy-agw" ]]; then
+  chmod +x ./cli/008-get-cfn-output.sh
+	API_GW_ID=$(./cli/008-get-cfn-output.sh api-gateway-stack ApiGateway $REGION)
+
+  chmod +x ./cli/019-auto-deploy-agw.sh
+  ./cli/019-auto-deploy-agw.sh $API_GW_ID dev $IMAGE_TAG $REGION
+  exit 0
+fi
+
 if [[ "$ACTION" == "create-repository" ]]; then
 	chmod +x ./cli/017-create-repository.sh
 

@@ -3,6 +3,7 @@ const {
   PutItemCommand,
   GetItemCommand,
 } = require("@aws-sdk/client-dynamodb");
+const { unmarshall } = require("@aws-sdk/util-dynamodb");
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
@@ -171,7 +172,7 @@ exports.handler = async (event, context, callback) => {
 
     return {
       statusCode: 200,
-      body: productResponse.Item,
+      body: unmarshall(productResponse.Item),
     };
   } catch (error) {
     if (error.code === "ConditionalCheckFailedException") {

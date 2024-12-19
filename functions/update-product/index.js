@@ -5,6 +5,7 @@ const {
   DeleteItemCommand,
   PutItemCommand,
 } = require("@aws-sdk/client-dynamodb");
+const { unmarshall } = require("@aws-sdk/util-dynamodb");
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
@@ -125,11 +126,11 @@ exports.handler = async (event, context, callback) => {
         "attribute_not_exists(stockCode) AND attribute_not_exists(#n)",
       ExpressionAttributeValues: {
         ":name": { S: event.body.name },
-        ":description": { S: event.body.description },
+        ":description": { S: event.body.description || "" },
         ":type": { S: event.body.type },
         ":category": { S: event.body.category },
         ":price": { N: event.body.price.toString() },
-        ":isActive": { BOOL: event.body.isActive },
+        ":isActive": { BOOL: event.body.isActive || true },
         ":stockCode": { S: event.body.stockCode },
       },
       ExpressionAttributeNames: {
@@ -221,7 +222,7 @@ exports.handler = async (event, context, callback) => {
 
     return {
       statusCode: 200,
-      body: productResponse.Item,
+      body: unmarshall(productResponse.Item),
     };
   } catch (error) {
     console.error(error);

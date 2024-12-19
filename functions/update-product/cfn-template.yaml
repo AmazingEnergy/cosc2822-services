@@ -59,7 +59,8 @@ Resources:
                   - dynamodb:Scan
                   - dynamodb:BatchWriteItem
                   - dynamodb:PutItem
-                  - dynamodb:UpdateIte
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
                 Resource: "*"
 
   LambdaFunction:

@@ -1,0 +1,22 @@
+[
+  {
+    "ParameterKey": "ClusterStackName",
+    "ParameterValue": "<ClusterStackName>"
+  },
+  {
+    "ParameterKey": "NetworkStackName",
+    "ParameterValue": "<NetworkStackName>"
+  },
+  {
+    "ParameterKey": "AlbStackName",
+    "ParameterValue": "<AlbStackName>"
+  },
+  {
+    "ParameterKey": "ContainerRegistry",
+    "ParameterValue": "<ContainerRegistry>"
+  },
+  {
+    "ParameterKey": "ImageTag",
+    "ParameterValue": "<ImageTag>"
+  }
+]

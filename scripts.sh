@@ -97,6 +97,13 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
     fi
   done
 
+  sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" ecs-tasks-params.json
+  sed -i -e "s/<NetworkStackName>/network-stack/g" ecs-tasks-params.json
+  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
+  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
+  sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" ecs-tasks-params.json
+  sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" ecs-tasks-params.json
+  ./cli/002-run-cfn.sh ecs-tasks-stack ecs-tasks.yaml ecs-tasks-params.json $REGION
 	exit 0
 fi
 

@@ -93,7 +93,7 @@ exports.handler = async (event, context, callback) => {
       ExpressionAttributeNames: {
         "#n": "name",
       },
-      ReturnValues: "ALL_NEW",
+      ReturnValues: "NONE",
     };
 
     if (event.parentSkuId) {
@@ -153,7 +153,7 @@ exports.handler = async (event, context, callback) => {
           },
         },
         ConditionExpression: "attribute_not_exists(stockCode)",
-        ReturnValues: "ALL_NEW",
+        ReturnValues: "NONE",
       })
     );
     console.log("Created inventory data: ", JSON.stringify(inventoryResponse));

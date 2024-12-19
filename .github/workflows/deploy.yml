@@ -55,9 +55,10 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
+          REGION: ${{ secrets.AWS_REGION }}
         run: |
           chmod +x ./scripts.sh
-          ./scripts.sh --action create-repository --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $region
+          ./scripts.sh --action create-repository --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $REGION
 
       ################################################
       # Deploy Core Service
@@ -70,9 +71,10 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ env.CORE_ECR_REPOSITORY }}
           IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
+          REGION: ${{ secrets.AWS_REGION }}
         run: |
           chmod +x ./scripts.sh
-          ./scripts.sh --action create-repository --container-repository $REPOSITORY --region $region
+          ./scripts.sh --action create-repository --container-repository $REPOSITORY --region $REGION
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
           echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
@@ -121,8 +123,8 @@ jobs:
           ls -l
           aws s3 ls
           chmod +x ./scripts.sh
-          ./scripts.sh --action deploy-all-stacks --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $region
-          ./scripts.sh --action deploy-agw --image-tag $IMAGE_TAG --region $region
+          ./scripts.sh --action deploy-all-stacks --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $REGION
+          ./scripts.sh --action deploy-agw --image-tag $IMAGE_TAG --region $REGION
           aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE
           aws cloudformation list-stacks --stack-status-filter UPDATE_COMPLETE
           aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --region us-east-1

@@ -38,10 +38,16 @@ exports.handler = async (event, context, callback) => {
     const command = new ScanCommand(params);
     const data = await client.send(command);
 
+    console.log("Scanned product data: ", JSON.stringify(data));
+
+    const items = data.Items.map((item) => unmarshall(item));
+
+    console.log("Unmarshalled product data: ", JSON.stringify(items));
+
     return {
       statusCode: 200,
       body: {
-        items: data.Items.map((item) => unmarshall(item)),
+        items: items,
         lastEvaluatedKey: data.LastEvaluatedKey,
       },
     };

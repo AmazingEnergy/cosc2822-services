@@ -113,15 +113,25 @@ Resources:
         - StatusCode: 200
           ResponseParameters:
             method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
         - StatusCode: 400
           ResponseModels:
             application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
         - StatusCode: 404
           ResponseModels:
             application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
         - StatusCode: 500
           ResponseModels:
             application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
       Integration:
         Type: AWS
         IntegrationHttpMethod: POST
@@ -138,6 +148,9 @@ Resources:
             SelectionPattern: ""
             ResponseTemplates:
               application/json: $input.json('$.body')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           - StatusCode: 400
             SelectionPattern: ".*\\[BadRequest\\].*"
             ResponseTemplates:
@@ -145,6 +158,9 @@ Resources:
                 {
                   "errorMessage": "$input.path('$.errorMessage')"
                 }
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           - StatusCode: 404
             SelectionPattern: ".*\\[NotFound\\].*"
             ResponseTemplates:
@@ -152,6 +168,9 @@ Resources:
                 {
                   "errorMessage": "$input.path('$.errorMessage')"
                 }
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
           - StatusCode: 500
             SelectionPattern: ".*\\[InternalServerError\\].*"
             ResponseTemplates:
@@ -159,6 +178,9 @@ Resources:
                 {
                   "errorMessage": "$input.path('$.errorMessage')"
                 }
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
 
   # https://docs.aws.amazon.com/lambda/latest/dg/permissions-granting-access.html
   # https://stackoverflow.com/a/39905743

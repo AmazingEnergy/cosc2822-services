@@ -111,6 +111,7 @@ Resources:
           "method.request.querystring.lastEvaluatedKey": false,
           "method.request.querystring.limit": false,
           "method.request.querystring.name": false,
+          "method.request.querystring.category": false,
         }
       MethodResponses:
         - StatusCode: 200
@@ -134,7 +135,7 @@ Resources:
             - LambdaArn: !GetAtt LambdaFunction.Arn
         RequestTemplates:
           {
-            "application/json": '{"lastEvaluatedKey":"$input.params(''lastEvaluatedKey'')", "limit":"$input.params(''limit'')", "name":"$input.params(''name'')"}',
+            "application/json": '{"lastEvaluatedKey":"$input.params(''lastEvaluatedKey'')", "limit":"$input.params(''limit'')", "name":"$input.params(''name'')", "category":"$input.params(''category'')"}',
           }
         IntegrationResponses:
           - StatusCode: 200

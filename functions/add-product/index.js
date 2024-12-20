@@ -70,6 +70,9 @@ exports.handler = async (event, context, callback) => {
         name: {
           S: event.name,
         },
+        lowerCaseName: {
+          S: event.name.toLowerCase(),
+        },
         price: {
           N: event.price.toString(),
         },

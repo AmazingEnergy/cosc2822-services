@@ -113,6 +113,7 @@ exports.handler = async (event, context, callback) => {
       },
       UpdateExpression: `SET 
         #n = :name, 
+        lowerCaseName = :lowerCaseName,
         #d = :description, 
         #t = :type, 
         category = :category, 
@@ -124,6 +125,7 @@ exports.handler = async (event, context, callback) => {
       `,
       ExpressionAttributeValues: {
         ":name": { S: event.body.name },
+        ":lowerCaseName": { S: event.body.name.toLowerCase() },
         ":description": { S: event.body.description || "" },
         ":type": { S: event.body.type },
         ":category": { S: event.body.category },

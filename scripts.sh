@@ -101,8 +101,20 @@ fi
 
 if [[ "$ACTION" == "destroy-all-stacks" ]]; then
 	chmod +x ./cli/005-delete-stack.sh
+  ./cli/005-delete-stack.sh ecs-tasks-stack $REGION
 
-	./cli/005-delete-stack.sh get-products-function-stack $REGION
+  for dir in ./functions/*/; do
+    if [ -d "$dir" ]; then
+      function_name=$(basename "$dir")
+      if [ ! -f "$dir/cfn-template.yaml" ]; then
+        echo "Skipping $function_name"
+        continue
+      fi
+
+      ./cli/005-delete-stack.sh "$function_name-function-stack" $REGION
+    fi
+  done
+
 	./cli/005-delete-stack.sh apigw-endpoints-stack $REGION
 	exit 0
 fi

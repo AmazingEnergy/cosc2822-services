@@ -5,7 +5,8 @@ const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "ap-southeast-1",
 });
 
-const tableName = process.env.TABLE_NAME || "ProductV2";
+const productTableName = process.env.TABLE_NAME || "ProductV2";
+const inventoryTableName = process.env.INVENTORY_TABLE_NAME || "Inventory";
 
 exports.handler = async (event, context, callback) => {
   console.log("Received Event: ", event);
@@ -16,7 +17,7 @@ exports.handler = async (event, context, callback) => {
     }
 
     let params = {
-      TableName: tableName,
+      TableName: productTableName,
       Key: {
         skuId: {
           S: event.skuId,
@@ -26,16 +27,32 @@ exports.handler = async (event, context, callback) => {
 
     console.log("Params: ", JSON.stringify(params));
 
-    const command = new GetItemCommand(params);
-    const data = await client.send(command);
+    const productResponse = await client.send(new GetItemCommand(params));
 
-    if (!data.Item) {
+    if (!productResponse.Item) {
       callback(new Error("[NotFound] Product not found"));
+    }
+
+    const product = unmarshall(productResponse.Item);
+
+    const inventoryResponse = await client.send(
+      new GetItemCommand({
+        TableName: inventoryTableName,
+        Key: {
+          stockCode: {
+            S: product.stockCode,
+          },
+        },
+      })
+    );
+
+    if (inventoryResponse.Item) {
+      product.inventory = unmarshall(inventoryResponse.Item);
     }
 
     return {
       statusCode: 200,
-      body: unmarshall(data.Item),
+      body: product,
     };
   } catch (error) {
     console.error(error);

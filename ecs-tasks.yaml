@@ -108,10 +108,6 @@ Resources:
           ContainerPort: 80
           TargetGroupArn:
             Fn::ImportValue: !Sub "${AlbStackName}-HttpEcsTargetGroupArn"
-        - ContainerName: !Ref TaskContainerName
-          ContainerPort: 80
-          TargetGroupArn:
-            Fn::ImportValue: !Sub "${AlbStackName}-HttpsEcsTargetGroupArn"
       ServiceConnectConfiguration:
         Enabled: true
         Namespace:

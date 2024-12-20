@@ -107,13 +107,17 @@ exports.handler = async (event, context, callback) => {
       }
     });
 
-    return {
-      statusCode: 200,
-      body: {
-        items: products,
-        lastEvaluatedKey: productResponse.LastEvaluatedKey,
-      },
-    };
+    if (productResponse.LastEvaluatedKey) {
+      return {
+        statusCode: 200,
+        body: {
+          items: products,
+          lastEvaluatedKey: unmarshall(productResponse.LastEvaluatedKey).skuId,
+        },
+      };
+    }
+
+    return { statusCode: 200, body: { items: products } };
   } catch (error) {
     console.error(error);
     callback(new Error("[InternalServerError] Something went wrong."));

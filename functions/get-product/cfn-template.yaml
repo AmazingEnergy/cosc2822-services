@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudFormation template to create get-products-function
+Description: CloudFormation template to create get-product-function
 
 Parameters:
   FunctionName:

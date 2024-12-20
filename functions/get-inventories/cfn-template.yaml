@@ -1,14 +1,15 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudFormation template to create update-product-function
+Description: CloudFormation template to create get-inventories-function
 
 Parameters:
   FunctionName:
     Type: String
     Description: function name
-    Default: UpdateProduct
+    Default: GetProducts
   FunctionRepository:
     Type: String
     Description: function ECR repository
+    Default: get-products-func
   ApiGatewayStack:
     Type: String
     Description: stack name
@@ -59,8 +60,7 @@ Resources:
                   - dynamodb:Scan
                   - dynamodb:BatchWriteItem
                   - dynamodb:PutItem
-                  - dynamodb:UpdateItem
-                  - dynamodb:DeleteItem
+                  - dynamodb:UpdateIte
                 Resource: "*"
 
   LambdaFunction:
@@ -103,12 +103,17 @@ Resources:
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       ResourceId:
-        Fn::ImportValue: !Sub "${EndpointsStack}-ProductSkuIdResourceId"
-      HttpMethod: PUT
+        Fn::ImportValue: !Sub "${EndpointsStack}-InventoryResourceId"
+      HttpMethod: GET
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
-      RequestParameters: { "method.request.path.skuId": true }
+      RequestParameters:
+        {
+          "method.request.querystring.lastEvaluatedKey": false,
+          "method.request.querystring.limit": false,
+          "method.request.querystring.stockCode": false,
+        }
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -141,7 +146,7 @@ Resources:
             - LambdaArn: !GetAtt LambdaFunction.Arn
         RequestTemplates:
           {
-            "application/json": '{"skuId": "$input.params(''skuId'')", "body": $input.json(''$'')}',
+            "application/json": '{"lastEvaluatedKey":"$input.params(''lastEvaluatedKey'')", "limit":"$input.params(''limit'')", "stockCode":"$input.params(''stockCode'')"}',
           }
         IntegrationResponses:
           - StatusCode: 200

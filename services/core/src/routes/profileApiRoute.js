@@ -1,16 +1,10 @@
 const express = require("express");
 
-const jwtCheck = require("../jwtCheck");
-
 const profileController = require("../app/controllers/profileController");
 
 const profileApiRoutes = express.Router();
 
-profileApiRoutes.get("/profile", jwtCheck, profileController.getProfile);
-profileApiRoutes.post(
-  "/profile",
-  jwtCheck,
-  profileController.postUpdateProfile
-);
+profileApiRoutes.get("/profile", profileController.getProfile);
+profileApiRoutes.post("/profile", profileController.postUpdateProfile);
 
 module.exports = profileApiRoutes;

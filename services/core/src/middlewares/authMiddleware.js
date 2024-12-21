@@ -2,9 +2,7 @@ const { Request, Response, NextFunction } = require("express");
 const UrlPattern = require("url-pattern");
 const jwt = require("jsonwebtoken");
 const { getSecretValue } = require("../infra/connectors/awsConnector");
-const {
-  cognitoExpressSession,
-} = require("../infra/connectors/cognitoConnector");
+const UnauthorizedError = require("../app/errors/UnauthorizedError");
 
 /**
  *
@@ -17,79 +15,61 @@ const {
 const auth = async (req, res, next) => {
   console.log("auth middleware", req);
 
-  let loginEndpoint = new UrlPattern("/login");
-  if (loginEndpoint.match(req.path)) {
-    const redirectUrl = await constructHostedURL();
-    res.writeHead(302, {
-      Location: redirectUrl,
-      //add other headers here...
-    });
-    res.end();
-    return;
-  }
-
   try {
     req.auth = {};
     req.auth.isAuth = false;
 
-    let token = req.cookies.jwt;
-    if (!token || isTokenExpire(token)) {
-      let publicEndpoints = process.env.APP_PUBLIC_ENDPOINTS.split(",").map(
-        (endpoint) => new UrlPattern(endpoint)
-      );
-
-      if (publicEndpoints.some((endpoint) => endpoint.match(req.path) !== null))
+    let authHeader = req.headers["authorization"];
+    if (!authHeader) {
+      if (isPublicEndpoint(req)) {
         return next();
+      }
 
-      const redirectUrl = await constructHostedURL();
-      res.writeHead(302, {
-        Location: redirectUrl,
-        //add other headers here...
-      });
-      res.end();
+      res.status(401);
+      res.json({ status: 401, msg: "Unauthorized: token is required" });
       return;
     }
 
-    // const session = await cognitoExpressSession();
-    // const response = await session.validate(token);
-    let response = jwt.decode(token);
-    req.auth.userId = response.sub;
-    req.auth.username = response["email"];
-    req.auth.groups = response["cognito:groups"] || [];
+    const token = authHeader.split(" ")[1];
+    if (!token || isTokenExpire(token)) {
+      if (isPublicEndpoint(req)) {
+        return next();
+      }
+
+      res.json({
+        status: 401,
+        msg: "Unauthorized: token is invalid or expired",
+      });
+      return;
+    }
+
+    req.auth.payload = jwt.decode(token);
+    jwtIssuer = getSecretValue(process.env.AUTH_ISSUER_SECRET_NAME);
+    jwtAudience = getSecretValue(process.env.AUTH_AUDIENCE_SECRET_NAME);
+    if (req.auth.payload.iss !== jwtIssuer) {
+      res.status(401);
+      res.json({ status: 401, msg: "Unauthorized: invalid issuer" });
+      return;
+    }
+    if (req.auth.payload.aud !== jwtAudience) {
+      res.status(401);
+      res.json({ status: 401, msg: "Unauthorized: invalid audience" });
+      return;
+    }
     req.auth.isAuth = true;
     next();
   } catch (error) {
-    console.error(error);
-    next();
+    console.log("auth error", error);
+    res.status(401);
+    res.json({ status: 401, msg: "Unauthorized: token is invalid" });
   }
 };
 
-const constructHostedURL = async () => {
-  let url = "";
-  let userPoolId = getSecretValue(process.env.COGNITO_USER_POOL_ID_SECRET_NAME);
-  let clientId = getSecretValue(
-    process.env.COGNITO_USER_POOL_CLIENT_ID_SECRET_NAME
+const isPublicEndpoint = (req) => {
+  let publicEndpoints = process.env.APP_PUBLIC_ENDPOINTS.split(",").map(
+    (endpoint) => new UrlPattern(endpoint)
   );
-  let redirectUri = getSecretValue(
-    process.env.COGNITO_USER_POOL_REDIRECT_URI_SECRET_NAME
-  );
-  let domain = getSecretValue(process.env.COGNITO_DOMAIN_SECRET_NAME);
-
-  if (domain && userPoolId && redirectUri && redirectUri) {
-    //
-  } else {
-    return null;
-  }
-
-  url += domain;
-  url += "/login?client_id=";
-  url += clientId;
-  url += "&response_type=token";
-  url += "&scope=email openid phone";
-  url += "&redirect_uri=";
-  url += encodeURIComponent(redirectUri);
-
-  return url;
+  return publicEndpoints.some((endpoint) => endpoint.match(req.path) !== null);
 };
 
 /**

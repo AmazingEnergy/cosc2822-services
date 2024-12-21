@@ -18,6 +18,7 @@ loadSecrets().then(() => {
   } = require("./infra/connectors/sequelizeConnector");
   const { autoMigration } = require("./infra/umzug");
   const route = require("./routes");
+  const { auth } = require("./middlewares/authMiddleware");
   const globalErrorHandler = require("./middlewares/globalErrorHandler");
 
   const app = express();
@@ -30,6 +31,8 @@ loadSecrets().then(() => {
 
   connectToMySqlServer().then(() => {
     autoMigration().then(() => {
+      app.use(auth);
+
       route(app);
 
       app.use(globalErrorHandler);

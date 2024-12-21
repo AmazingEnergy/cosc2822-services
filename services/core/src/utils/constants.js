@@ -10,8 +10,7 @@ module.exports = {
   // The path must start with "/core/api".
   API_PATH: "/core/api",
 
-  HIDDEN_ROLE_CLAIM: "table-talk-type",
-  ACCOUNT_ID_CLAIM: "table-talk-externalId",
+  HIDDEN_ROLE_CLAIM: "cognito:groups",
   CLIENT_ID_CLAIM: "table-talk-appId",
   CLIENT_NAME_CLAIM: "table-talk-appName",
 };

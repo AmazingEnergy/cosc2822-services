@@ -27,9 +27,15 @@ Mappings:
       CartIdResourcePath: "{id}"
       PayCartResourcePath: "pay"
       SubmitCartResourcePath: "submit"
+      AddItemCartResourcePath: "addItem"
+      RemoveItemCartResourcePath: "removeItem"
+      UpdateItemCartResourcePath: "updateItem"
     Order:
       ResourcePath: "orders"
       OrderIdResourcePath: "{id}"
+      CancelOrderResourcePath: "cancel"
+      RejectOrderResourcePath: "reject"
+      CompleteOrderResourcePath: "complete"
 
 Resources:
   ###############################################
@@ -148,6 +154,33 @@ Resources:
       PathPart:
         Fn::FindInMap: [Resources, Cart, SubmitCartResourcePath]
 
+  AddItemCartResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref CartIdResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Cart, AddItemCartResourcePath]
+
+  RemoveItemCartResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref CartIdResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Cart, RemoveItemCartResourcePath]
+
+  UpdateItemCartResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref CartIdResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Cart, UpdateItemCartResourcePath]
+
   OrderResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
@@ -166,6 +199,33 @@ Resources:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       PathPart:
         Fn::FindInMap: [Resources, Order, OrderIdResourcePath]
+
+  CancelOrderResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref OrderIdResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Order, CancelOrderResourcePath]
+
+  RejectOrderResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref OrderIdResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Order, RejectOrderResourcePath]
+
+  CompleteOrderResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref OrderIdResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Order, CompleteOrderResourcePath]
 
   ###############################################
   # API Gateway OPTIONS Methods
@@ -446,6 +506,81 @@ Resources:
               method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
 
+  AddItemCartResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt AddItemCartResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  RemoveItemCartResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt RemoveItemCartResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  UpdateItemCartResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt UpdateItemCartResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
   SubmitCartResourceOptionsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -502,6 +637,56 @@ Resources:
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       ResourceId: !GetAtt OrderIdResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  CancelOrderResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt CancelOrderResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  RejectOrderResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt RejectOrderResource.ResourceId
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       MethodResponses:
@@ -594,6 +779,24 @@ Outputs:
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-SubmitCartResourceId"
+  AddItemCartResourceId:
+    Value: !GetAtt AddItemCartResource.ResourceId
+    Description: Id of AddItemCart resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-AddItemCartResourceId"
+  RemoveItemCartResourceId:
+    Value: !GetAtt RemoveItemCartResource.ResourceId
+    Description: Id of RemoveItemCart resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-RemoveItemCartResourceId"
+  UpdateItemCartResourceId:
+    Value: !GetAtt UpdateItemCartResource.ResourceId
+    Description: Id of UpdateItemCart resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-UpdateItemCartResourceId"
   OrderResourceId:
     Value: !GetAtt OrderResource.ResourceId
     Description: Id of Order resource
@@ -606,3 +809,21 @@ Outputs:
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-OrderIdResourceId"
+  CancelOrderResourceId:
+    Value: !GetAtt CancelOrderResource.ResourceId
+    Description: Id of CancelOrder resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-CancelOrderResourceId"
+  RejectOrderResourceId:
+    Value: !GetAtt RejectOrderResource.ResourceId
+    Description: Id of RejectOrder resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-RejectOrderResourceId"
+  CompleteOrderResourceId:
+    Value: !GetAtt CompleteOrderResource.ResourceId
+    Description: Id of CompleteOrder resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-CompleteOrderResourceId"

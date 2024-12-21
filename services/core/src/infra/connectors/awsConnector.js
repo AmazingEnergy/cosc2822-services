@@ -11,11 +11,13 @@ var _localOnlySecrets = {
   // "/shop/userPoolRedirectUri":
   //   process.env.LOCAL_ONLY_COGNITO_USER_POOL_REDIRECT_URI,
   // "/shop/cognitoDomain": process.env.LOCAL_ONLY_COGNITO_DOMAIN,
-  "/shop/dbUrl": process.DB_URL_SECRET_NAME,
-  "/shop/dbPort": process.DB_PORT_SECRET_NAME,
-  "/shop/dbName": process.DB_NAME_SECRET_NAME,
-  "/shop/dbUsername": process.DB_USERNAME_SECRET_NAME,
-  "/shop/dbPassword": process.DB_PASSWORD_SECRET_NAME,
+  "/shop/dbUrl": process.env.DB_URL_SECRET_NAME,
+  "/shop/dbPort": process.env.DB_PORT_SECRET_NAME,
+  "/shop/dbName": process.env.DB_NAME_SECRET_NAME,
+  "/shop/dbUsername": process.env.DB_USERNAME_SECRET_NAME,
+  "/shop/dbPassword": process.env.DB_PASSWORD_SECRET_NAME,
+  "/shop/auth/audience": process.env.AUTH_AUDIENCE_SECRET_NAME,
+  "/shop/auth/issuer": process.env.AUTH_ISSUER_SECRET_NAME,
 };
 
 var _remoteSecrets = {};
@@ -26,9 +28,13 @@ module.exports.loadSecrets = async () => {
   const client = new SSMClient({
     region: process.env.REGION_STR,
   });
+  const secretNames = Object.keys(_localOnlySecrets)
+    .filter((key) => key && key !== null && key !== "")
+    .map((key) => _localOnlySecrets[key]);
+  console.log("Starting to load secrets: ", secretNames.join(", "));
   const response = await client.send(
     new GetParametersCommand({
-      Names: Object.keys(_localOnlySecrets),
+      Names: secretNames,
       WithDecryption: true,
     })
   );
@@ -37,7 +43,7 @@ module.exports.loadSecrets = async () => {
     console.log("Load secret value with key: ", key);
     let parameter = response.Parameters.find((p) => p.Name === key);
     console.log(
-      "Retrieved secret value from SSM Pamaeter Store: ",
+      "Retrieved secret value from SSM Parameter Store: ",
       parameter.ARN
     );
     _remoteSecrets[key] = parameter.Value;

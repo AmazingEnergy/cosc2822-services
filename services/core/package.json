@@ -8,9 +8,9 @@
     "start": "node ./src/app.js",
     "macStart": "export NODE_ENV=local && nodemon --inspect ./src/app.js",
     "macStart:prod": "export NODE_ENV=production && nodemon --inspect ./src/app.js",
-    "generate-migration": "node ./src/migrate.js create --name ",
-    "revert-migration": "node ./src/migrate.js down --name ",
-    "revert-migration-to": "node ./src/migrate.js down --to "
+    "generate-migration": "export NODE_ENV=development && node ./src/migrate.js create --name ",
+    "revert-migration": "export NODE_ENV=development && node ./src/migrate.js down --name ",
+    "revert-migration-to": "export NODE_ENV=development && node ./src/migrate.js down --to "
   },
   "repository": {
     "type": "git",
@@ -39,7 +39,8 @@
     "mysql2": "^3.11.5",
     "sequelize": "^6.37.5",
     "umzug": "^3.8.2",
-    "url-pattern": "^1.0.3"
+    "url-pattern": "^1.0.3",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.4",

@@ -14,6 +14,11 @@ const findById = async (id) => {
         as: "cartItems",
         attributes: models.CartItem.getAttributes(),
       },
+      {
+        model: dbContext.payments,
+        as: "payments",
+        attributes: models.Payment.getAttributes(),
+      },
     ],
     attributes: models.Cart.getAttributes(),
   });
@@ -25,7 +30,7 @@ const findById = async (id) => {
  * @type {(cart: import("../../app/models").Cart) => Promise<import("sequelize").Model<any, any>>}
  */
 const addCart = async (cart) => {
-  return await dbContext.carts.create(cart);
+  return await dbContext.carts.create(cart, { returning: true });
 };
 
 /**

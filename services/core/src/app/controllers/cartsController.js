@@ -1,18 +1,34 @@
 const controller = require("../../utils/controller");
 const { extractUserClaims } = require("../../utils/claims");
 const dto = require("../dto");
+const cartService = require("../services/cartService");
 
 const getCart = controller.get(async (req, res, next) => {
-  // TODO: implement
+  res.json(
+    await cartService.getCart(req.params.id, extractUserClaims(req).userId)
+  );
 }, dto.FindCartParams);
 
 const postCreateCart = controller.post(async (req, res, next) => {
-  res.json({ message: "Cart created" });
+  res.json(
+    await cartService.createCart({
+      ...req.body,
+      customerId: extractUserClaims(req).userId,
+      createdBy: extractUserClaims(req).email,
+    })
+  );
 }, dto.CreateCartDto);
 
 const postAddCartItem = controller.post(
   async (req, res, next) => {
-    // TODO: implement
+    res.json(
+      await cartService.addItem({
+        ...req.body,
+        cartId: req.params.id,
+        customerId: extractUserClaims(req).userId,
+        createdBy: extractUserClaims(req).email,
+      })
+    );
   },
   dto.FindCartParams,
   dto.AddCartItemDto
@@ -20,7 +36,14 @@ const postAddCartItem = controller.post(
 
 const postRemoveCartItem = controller.post(
   async (req, res, next) => {
-    // TODO: implement
+    res.json(
+      await cartService.removeItem({
+        ...req.body,
+        cartId: req.params.id,
+        customerId: extractUserClaims(req).userId,
+        removedBy: extractUserClaims(req).email,
+      })
+    );
   },
   dto.FindCartParams,
   dto.RemoveCartItemDto
@@ -28,7 +51,14 @@ const postRemoveCartItem = controller.post(
 
 const postUpdateCartItem = controller.post(
   async (req, res, next) => {
-    // TODO: implement
+    res.json(
+      await cartService.updateItem({
+        ...req.body,
+        cartId: req.params.id,
+        customerId: extractUserClaims(req).userId,
+        updatedBy: extractUserClaims(req).email,
+      })
+    );
   },
   dto.FindCartParams,
   dto.UpdateCartItemDto
@@ -44,7 +74,14 @@ const postPayCart = controller.post(
 
 const postSubmitCart = controller.post(
   async (req, res, next) => {
-    // TODO: implement
+    res.json(
+      await cartService.submitCart({
+        ...req.body,
+        cartId: req.params.id,
+        customerId: extractUserClaims(req).userId,
+        submittedBy: extractUserClaims(req).email,
+      })
+    );
   },
   dto.FindCartParams,
   dto.SubmitCartDto

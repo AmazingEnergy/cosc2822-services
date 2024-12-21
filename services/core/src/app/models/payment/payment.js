@@ -1,3 +1,5 @@
+const PaymentStatus = require("./paymentStatus");
+
 class Payment {
   /**
    * @param {uuid} cartId
@@ -18,6 +20,7 @@ class Payment {
     this.id = null;
     this.cartId = cartId;
     this.paymentReference = paymentReference;
+    this.status = PaymentStatus.New;
     this.createdAt = createdAt || null;
     this.createdBy = createdBy;
     this.updatedAt = updatedAt || null;

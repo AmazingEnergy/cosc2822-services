@@ -58,7 +58,9 @@ const findById = async (id) => {
  * @type {(order: import("../../app/models").Order) => Promise<import("sequelize").Model<any, any>>}
  */
 const addOrder = async (order) => {
-  return await dbContext.orders.create(order);
+  return await dbContext.orders.create(order, {
+    returning: true,
+  });
 };
 
 /**

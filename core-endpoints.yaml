@@ -15,6 +15,10 @@ Parameters:
 Resources:
   # https://docs.aws.amazon.com/apigateway/latest/developerguide/setup-http-integrations.html
 
+  #############################################
+  # Profile
+  #############################################
+
   GetProfileMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -128,6 +132,890 @@ Resources:
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/profile"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  #############################################
+  # Cart
+  #############################################
+
+  PostCartMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-CartResourceId"
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/carts"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  GetCartMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-CartIdResourceId"
+      HttpMethod: GET
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: GET
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/carts/{id}"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  PostAddCartItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-AddItemCartResourceId"
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/carts/{id}/addItem"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  PostUpdateCartItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-UpdateItemCartResourceId"
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/carts/{id}/updateItem"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  PostRemoveCartItemMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-RemoveItemCartResourceId"
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/carts/{id}/removeItem"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  PostPayCartMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-PayCartResourceId"
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/carts/{id}/pay"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  PostSubmitCartMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-SubmitCartResourceId"
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/carts/{id}/submit"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  #############################################
+  # Order
+  #############################################
+
+  ListOrderMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-OrderResourceId"
+      HttpMethod: GET
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: GET
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/orders"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  GetOrderMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-OrderIdResourceId"
+      HttpMethod: GET
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: GET
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/orders/{id}"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  PostCompleteOrderMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-CompleteOrderResourceId"
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/orders/{id}/complete"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  PostCancelOrderMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-CancelOrderResourceId"
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/orders/{id}/cancel"
+            - AlbDnsName:
+                Fn::ImportValue:
+                  Fn::Sub: "${AlbStack}-EcsALBDNSName"
+        IntegrationResponses:
+          - StatusCode: 200
+            SelectionPattern: ""
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 400
+            SelectionPattern: "400"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 404
+            SelectionPattern: "404"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+          - StatusCode: 500
+            SelectionPattern: "500"
+            ResponseTemplates:
+              application/json: $input.json('$')
+            ResponseParameters:
+              method.response.header.Content-Type: "'application/json'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  PostRejectOrderMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId:
+        Fn::ImportValue: !Sub "${EndpointsStack}-RejectOrderResourceId"
+      HttpMethod: POST
+      AuthorizationType: "COGNITO_USER_POOLS"
+      AuthorizerId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 400
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 404
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+        - StatusCode: 500
+          ResponseModels:
+            application/json: "Error"
+          ResponseParameters:
+            method.response.header.Content-Type: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: HTTP_PROXY
+        IntegrationHttpMethod: POST
+        Uri:
+          Fn::Sub:
+            - "http://${AlbDnsName}/core/api/orders/{id}/reject"
             - AlbDnsName:
                 Fn::ImportValue:
                   Fn::Sub: "${AlbStack}-EcsALBDNSName"

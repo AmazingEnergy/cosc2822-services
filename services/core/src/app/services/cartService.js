@@ -1,65 +1,198 @@
 const models = require("../models");
-const productService = require("./productService");
+const BadRequestError = require("../errors/BadRequestError");
+const NotFoundError = require("../errors/NotFoundError");
+const ForbiddenError = require("../errors/ForbiddenError");
 const cartRepository = require("../../infra/repositories/sequelizeCartRepository");
+const orderRepository = require("../../infra/repositories/sequelizeOrderRepository");
 
-const getCart = async (customerId) => {
-  let cart = await cartRepository.loadCart(customerId);
+const getCart = async (cartId, customerId) => {
+  let cart = await cartRepository.findById(cartId);
   if (!cart) {
-    cart = await cartRepository.addCart(new models.Cart(customerId));
-    cart.cartItems = [];
+    throw new NotFoundError(`Not found cart with id ${cartId}`);
   }
-  for (const item of cart.cartItems) {
-    const product = await productService.findById(item.productId);
-    item["productTitle"] = product.title;
-    item["productPrice"] = product.price;
-    item["productDiscountPrice"] = product.discountPrice;
-    item["productImageUrl"] = product.imageUrl;
+  if (cart.customerId !== customerId) {
+    throw new ForbiddenError(`Forbidden`);
   }
-  return cart;
+  return cart.dataValues;
 };
 
-const clearCart = async (customerId) => {
-  const cart = await cartRepository.loadCart(customerId);
-  await cartRepository.deleteCartItems(cart.id);
+const createCart = async (createCartDto) => {
+  let cart = await cartRepository.addCart(
+    new models.Cart(createCartDto.customerId, null, createCartDto.createdBy)
+  );
+  return cart.dataValues;
 };
 
-const addItems = async (customerId, productId, quantity) => {
-  const cart = await cartRepository.loadCart(customerId);
+const addItem = async (addCartItemDto) => {
+  let cart = await cartRepository.findById(addCartItemDto.cartId);
   if (!cart) {
-    await cartRepository.addCart(new models.Cart(customerId));
+    throw new NotFoundError(`Not found cart with id ${addCartItemDto.cartId}`);
+  }
+  if (cart.customerId !== addCartItemDto.customerId) {
+    throw new ForbiddenError(`Forbidden`);
+  }
+  if (cart.submittedAt !== null) {
+    throw new BadRequestError(`Cart has been submitted`);
   }
 
-  const cartItem = cart.cartItems.find((item) => item.productId === productId);
+  const cartItem = cart.cartItems.find(
+    (item) => item.skuId === addCartItemDto.skuId
+  );
   if (cartItem) {
-    cartItem.quantity += quantity;
+    cartItem.quantity += addCartItemDto.quantity;
     await cartRepository.saveCartItem(cartItem);
   } else {
     await cartRepository.addCartItem(
-      new models.CartItem(cart.id, productId, quantity)
+      new models.CartItem(
+        cart.id,
+        addCartItemDto.skuId,
+        addCartItemDto.productName,
+        addCartItemDto.productPrice,
+        addCartItemDto.discountPrice,
+        addCartItemDto.stockCode,
+        addCartItemDto.quantity
+      )
     );
   }
+  return await getCart(addCartItemDto.cartId, addCartItemDto.customerId);
 };
 
-const removeItems = async (customerId, productId, quantity) => {
-  const cart = await cartRepository.loadCart(customerId);
+const updateItem = async (updateCartItemDto) => {
+  let cart = await cartRepository.findById(updateCartItemDto.cartId);
   if (!cart) {
-    return;
+    throw new NotFoundError(
+      `Not found cart with id ${updateCartItemDto.cartId}`
+    );
   }
-  const cartItem = cart.cartItems.find((item) => item.productId === productId);
-  if (!cartItem) {
-    return;
+  if (cart.customerId !== updateCartItemDto.customerId) {
+    throw new ForbiddenError(`Forbidden`);
   }
-  if (cartItem.quantity <= quantity) {
+  if (cart.submittedAt !== null) {
+    throw new BadRequestError(`Cart has been submitted`);
+  }
+
+  const cartItem = cart.cartItems.find(
+    (item) => item.skuId === updateCartItemDto.skuId
+  );
+  if (cartItem) {
+    if (updateCartItemDto.quantity == 0) {
+      await cartRepository.deleteCartItem(cartItem.id);
+    }
+    cartItem.quantity = updateCartItemDto.quantity;
+    cartItem.discountPrice = updateCartItemDto.discountPrice;
+    await cartRepository.saveCartItem(cartItem);
+  } else {
+    throw new NotFoundError(
+      `Not found cart item with skuId ${updateCartItemDto.skuId}`
+    );
+  }
+  return await getCart(updateCartItemDto.cartId, updateCartItemDto.customerId);
+};
+
+const removeItem = async (removeCartItemDto) => {
+  let cart = await cartRepository.findById(removeCartItemDto.cartId);
+  if (!cart) {
+    throw new NotFoundError(
+      `Not found cart with id ${removeCartItemDto.cartId}`
+    );
+  }
+  if (cart.customerId !== removeCartItemDto.customerId) {
+    throw new ForbiddenError(`Forbidden`);
+  }
+  if (cart.submittedAt !== null) {
+    throw new BadRequestError(`Cart has been submitted`);
+  }
+
+  const cartItem = cart.cartItems.find(
+    (item) => item.skuId === removeCartItemDto.skuId
+  );
+  if (cartItem) {
     await cartRepository.deleteCartItem(cartItem.id);
   } else {
-    cartItem.quantity -= quantity;
-    await cartRepository.saveCartItem(cartItem);
+    throw new NotFoundError(
+      `Not found cart item with skuId ${removeCartItemDto.skuId}`
+    );
   }
+  return await getCart(removeCartItemDto.cartId, removeCartItemDto.customerId);
+};
+
+const pay = async (payCartDto) => {
+  let cart = await cartRepository.findById(payCartDto.cartId);
+  if (!cart) {
+    throw new NotFoundError(`Not found cart with id ${payCartDto.cartId}`);
+  }
+  if (cart.customerId !== payCartDto.customerId) {
+    throw new ForbiddenError(`Forbidden`);
+  }
+  if (cart.submittedAt !== null) {
+    throw new BadRequestError(`Cart has been submitted`);
+  }
+  if (
+    cart.payments.any(
+      (payment) => payment.status === models.PaymentStatus.Completed
+    )
+  ) {
+    throw new BadRequestError(`Cart has been paid`);
+  }
+
+  // TODO: integrate with Stripe
+  // 1. create product and price
+  // 2. create checkout session
+
+  return {
+    clientSecret: "<todo>",
+  };
+};
+
+const submit = async (submitCartDto) => {
+  let cart = await cartRepository.findById(submitCartDto.cartId);
+  if (!cart) {
+    throw new NotFoundError(`Not found cart with id ${submitCartDto.cartId}`);
+  }
+  if (cart.customerId !== submitCartDto.customerId) {
+    throw new ForbiddenError(`Forbidden`);
+  }
+  if (cart.submittedAt !== null) {
+    throw new BadRequestError(`Cart has been submitted`);
+  }
+
+  const order = await orderRepository.addOrder(
+    new models.Order(
+      cart.id,
+      submitCartDto.customerId,
+      submitCartDto.contactName,
+      submitCartDto.contactEmail,
+      submitCartDto.contactPhone,
+      submitCartDto.deliveryAddress,
+      submitCartDto.promotionCode,
+      models.OrderStatus.New,
+      submitCartDto.submittedBy
+    )
+  );
+
+  for (const item of cart.cartItems) {
+    await orderRepository.addOrderItem(
+      new models.OrderItem(
+        order.id,
+        item.skuId,
+        item.productName,
+        item.stockCode,
+        item.quantity,
+        item.productPrice,
+        item.discountPrice
+      )
+    );
+  }
+
+  cart.submittedAt = new Date();
+  await cartRepository.saveCart(cart);
+  return order.dataValues;
 };
 
 module.exports = {
   getCart,
-  clearCart,
-  addItems,
-  removeItems,
+  createCart,
+  addItem,
+  updateItem,
+  removeItem,
 };

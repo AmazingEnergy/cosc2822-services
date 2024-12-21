@@ -2,6 +2,7 @@ const OrderStatus = Object.freeze({
   New: "new",
   Completed: "completed",
   Cancelled: "cancelled",
+  Rejected: "rejected",
 });
 
 module.exports = {

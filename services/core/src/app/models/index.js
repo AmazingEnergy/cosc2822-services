@@ -8,3 +8,4 @@ module.exports.OrderItem = require("./order/orderItem");
 module.exports.OrderStatus = require("./order/orderStatus");
 
 module.exports.Payment = require("./payment/payment");
+module.exports.PaymentStatus = require("./payment/paymentStatus");

@@ -2,7 +2,6 @@ const NotFoundError = require("../../app/errors/NotFoundError");
 const BadRequestError = require("../../app/errors/BadRequestError");
 const { sum } = require("../../utils/utils");
 
-const productRepository = require("../../infra/repositories/sequelizeProductRepository");
 const orderRepository = require("../../infra/repositories/sequelizeOrderRepository");
 const models = require("../models");
 
@@ -12,18 +11,17 @@ const listOrders = async (query) => {
       await orderRepository.listOrders(query)
     ).map(async (order) => {
       const totalAmount = sum(
-        order.orderItems.map((item) => item.price * item.quantity)
+        order.orderItems.map((item) => item.productPrice * item.quantity)
+      );
+      const discountAmount = sum(
+        order.orderItems.map(
+          (item) => (item.discountPrice || 0) * item.quantity
+        )
       );
       return {
-        id: order.id,
-        orderNumber: getOrderNumber(order),
-        customer: {
-          fullName: order.customerName,
-        },
+        ...order.dataValues,
         totalAmount: totalAmount,
-        status: order.status,
-        shippingAddress: order.shippingAddress,
-        createdAt: order.createdAt,
+        discountAmount: discountAmount,
       };
     })
   );
@@ -32,103 +30,74 @@ const listOrders = async (query) => {
 
 const findById = async (id) => {
   const order = await orderRepository.findById(id);
-  const orderItems = [];
-  for (const item of order.orderItems) {
-    const product = await productRepository.findById(item.productId);
-    orderItems.push({
-      ...item.dataValues,
-      title: product.title,
-      description: product.description,
-      imageUrl: product.imageUrl,
-    });
-  }
-  const totalAmount = sum(orderItems.map((item) => item.price * item.quantity));
+  const totalAmount = sum(
+    orderItems.map((item) => item.productPrice * item.quantity)
+  );
+  const discountAmount = sum(
+    orderItems.map((item) => (item.discountPrice || 0) * item.quantity)
+  );
   return {
-    id: order.id,
-    orderNumber: getOrderNumber(order),
-    customer: {
-      id: order.customerId,
-      fullName: order.customerName,
-      phone: order.customerPhone,
-      email: order.customerEmail,
-    },
+    ...order.dataValues,
     totalAmount: totalAmount,
-    status: order.status,
-    shippingAddress: order.shippingAddress,
-    orderItems: orderItems,
-    createdAt: order.createdAt,
-    createdBy: order.createdBy,
-    updatedAt: order.updatedAt,
-    updatedBy: order.updatedBy,
+    discountAmount: discountAmount,
   };
 };
 
-/**
- * @param {import("../dto").CreateOrderDto} createOrderDto
- * @param {string} createdBy
- */
-const addOrder = async (createOrderDto, createdBy) => {
-  const order = await orderRepository.addOrder(
-    new models.Order(
-      createOrderDto.customerId,
-      createOrderDto.customerName,
-      createOrderDto.customerEmail,
-      createOrderDto.customerPhone,
-      createOrderDto.shippingAddress,
-      models.OrderStatus.New,
-      createdBy
-    )
-  );
-
-  for (const item of createOrderDto.orderItems) {
-    const product = await productRepository.findById(item.productId);
-    await orderRepository.addOrderItem(
-      new models.OrderItem(
-        order.id,
-        item.productId,
-        item.quantity,
-        product.discountPrice !== undefined && product.discountPrice !== null
-          ? product.discountPrice
-          : product.price
-      )
+const completeOrder = async (completeOrderDto) => {
+  const orderInDb = await orderRepository.findById(completeOrderDto.orderId);
+  if (!orderInDb)
+    throw new NotFoundError(
+      `Not found order with id ${completeOrderDto.orderId}`
     );
-  }
-
-  return order;
-};
-
-const completeOrder = async (id, completedBy) => {
-  const orderInDb = await orderRepository.findById(id);
-  if (!orderInDb) throw new NotFoundError(`Not found order with id ${id}`);
   if (orderInDb.status !== models.OrderStatus.New)
-    throw new BadRequestError(`Order ${id} is not allowed to complete.`);
+    throw new BadRequestError(
+      `Order ${completeOrderDto.orderId} is not allowed to complete.`
+    );
   orderInDb.status = models.OrderStatus.Completed;
   orderInDb.updatedAt = new Date();
-  orderInDb.updatedBy = completedBy;
-  return await orderRepository.saveOrder(orderInDb);
+  orderInDb.updatedBy = completeOrderDto.completedBy;
+  const savedOrder = await orderRepository.saveOrder(orderInDb);
+  return savedOrder.dataValues;
 };
 
-const cancelOrder = async (id, cancelledBy) => {
-  const orderInDb = await orderRepository.findById(id);
-  if (!orderInDb) throw new NotFoundError(`Not found order with id ${id}`);
+const cancelOrder = async (cancelOrderDto) => {
+  const orderInDb = await orderRepository.findById(cancelOrderDto.orderId);
+  if (!orderInDb)
+    throw new NotFoundError(
+      `Not found order with id ${cancelOrderDto.orderId}`
+    );
   if (orderInDb.status !== models.OrderStatus.New)
-    throw new BadRequestError(`Order ${id} is not allowed to cancel.`);
+    throw new BadRequestError(
+      `Order ${cancelOrderDto.orderId} is not allowed to cancel.`
+    );
   orderInDb.status = models.OrderStatus.Cancelled;
   orderInDb.updatedAt = new Date();
-  orderInDb.updatedBy = cancelledBy;
-  return await orderRepository.saveOrder(orderInDb);
+  orderInDb.updatedBy = cancelOrderDto.cancelledBy;
+  const savedOrder = await orderRepository.saveOrder(orderInDb);
+  return savedOrder.dataValues;
 };
 
-function getOrderNumber(order) {
-  return `ODR-${order.createdAt.getFullYear()}${
-    order.createdAt.getMonth() + 1
-  }${order.createdAt.getDate()}${("0000" + order.id).slice(-4)}`;
-}
+const rejectOrder = async (rejectOrderDto) => {
+  const orderInDb = await orderRepository.findById(rejectOrderDto.orderId);
+  if (!orderInDb)
+    throw new NotFoundError(
+      `Not found order with id ${rejectOrderDto.orderId}`
+    );
+  if (orderInDb.status !== models.OrderStatus.New)
+    throw new BadRequestError(
+      `Order ${rejectOrderDto.orderId} is not allowed to reject.`
+    );
+  orderInDb.status = models.OrderStatus.Rejected;
+  orderInDb.updatedAt = new Date();
+  orderInDb.updatedBy = rejectOrderDto.rejectedBy;
+  const savedOrder = await orderRepository.saveOrder(orderInDb);
+  return savedOrder.dataValues;
+};
 
 module.exports = {
   listOrders,
   findById,
-  addOrder,
   completeOrder,
   cancelOrder,
+  rejectOrder,
 };

@@ -70,11 +70,35 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
 	sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" ./apigw-endpoints-params.json
 	./cli/002-run-cfn.sh apigw-endpoints-stack apigw-endpoints.yaml apigw-endpoints-params.json $REGION
 
+  # if any git change in ./services/core directory, then do something
+  if [[ -n $(git status -s ./services/core) ]]; then
+    echo "Skipping core service due to no code changes"
+  else
+    sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" ecs-tasks-params.json
+    sed -i -e "s/<NetworkStackName>/network-stack/g" ecs-tasks-params.json
+    sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
+    sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
+    sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" ecs-tasks-params.json
+    sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" ecs-tasks-params.json
+    ./cli/002-run-cfn.sh ecs-tasks-stack ecs-tasks.yaml ecs-tasks-params.json $REGION
+  fi
+
+  sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" core-endpoints-params.json
+  sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" core-endpoints-params.json
+  sed -i -e "s/<AlbStack>/alb-stack/g" core-endpoints-params.json
+  ./cli/002-run-cfn.sh core-endpoints-stack core-endpoints.yaml core-endpoints-params.json $REGION
+
   for dir in ./functions/*/; do
     if [ -d "$dir" ]; then
       function_name=$(basename "$dir")
       if [ ! -f "$dir/cfn-template.yaml" ]; then
         echo "Skipping $function_name"
+        continue
+      fi
+
+      # skip if there is no git changes in the function directory
+      if [[ -n $(git status -s "$dir") ]]; then
+        echo "Skipping $function_name due to no code changes"
         continue
       fi
 
@@ -88,15 +112,6 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
       ./cli/002-run-cfn.sh "$function_name-function-stack" "$non_prefix_dir/cfn-template.yaml" "$non_prefix_dir/cfn-template-params.json" $REGION
     fi
   done
-
-  sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<NetworkStackName>/network-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" ecs-tasks-params.json
-  sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" ecs-tasks-params.json
-  ./cli/002-run-cfn.sh ecs-tasks-stack ecs-tasks.yaml ecs-tasks-params.json $REGION
-
 	exit 0
 fi
 

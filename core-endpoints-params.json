@@ -1,0 +1,14 @@
+[
+  {
+    "ParameterKey": "ApiGatewayStack",
+    "ParameterValue": "<ApiGatewayStack>"
+  },
+  {
+    "ParameterKey": "EndpointsStack",
+    "ParameterValue": "<EndpointsStack>"
+  },
+  {
+    "ParameterKey": "AlbStack",
+    "ParameterValue": "<AlbStack>"
+  }
+]

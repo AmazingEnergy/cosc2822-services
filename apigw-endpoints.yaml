@@ -11,6 +11,8 @@ Parameters:
 
 Mappings:
   Resources:
+    Profile:
+      ResourcePath: "profile"
     Product:
       ResourcePath: "products"
       ProductSkuIdResourcePath: "{skuId}"
@@ -41,6 +43,16 @@ Resources:
   ###############################################
   # API Gateway Resources
   ###############################################
+
+  ProfileResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayRootResourceId"
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Profile, ResourcePath]
 
   ProductResource:
     Type: "AWS::ApiGateway::Resource"
@@ -230,6 +242,31 @@ Resources:
   ###############################################
   # API Gateway OPTIONS Methods
   ###############################################
+
+  ProfileResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt ProfileResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
 
   ProductResourceOptionsMethod:
     Type: AWS::ApiGateway::Method
@@ -707,6 +744,12 @@ Resources:
               method.response.header.Access-Control-Allow-Origin: "'*'"
 
 Outputs:
+  ProfileResourceId:
+    Value: !GetAtt ProfileResource.ResourceId
+    Description: Id of Profile resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-ProfileResourceId"
   ProductResourceId:
     Value: !GetAtt ProductResource.ResourceId
     Description: Id of Product resource

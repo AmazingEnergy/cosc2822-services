@@ -26,10 +26,18 @@ const paymentEntity = db().define("payments", {
     type: Sequelize.STRING(50),
     allowNull: false,
   },
+  createdBy: {
+    type: Sequelize.STRING(255),
+    allowNull: false,
+  },
   createdAt: {
     type: Sequelize.DATE,
     allowNull: false,
     defaultValue: Sequelize.NOW,
+  },
+  updatedBy: {
+    type: Sequelize.STRING(255),
+    allowNull: true,
   },
   updatedAt: {
     type: Sequelize.DATE,

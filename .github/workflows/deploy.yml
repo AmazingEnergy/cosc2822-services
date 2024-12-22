@@ -117,11 +117,13 @@ jobs:
           REGION: ${{ secrets.AWS_REGION }}
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_SECRET_HOOK: ${{ secrets.STRIPE_SECRET_HOOK }}
         run: |
           ls -l
           aws s3 ls
           chmod +x ./scripts.sh
-          ./scripts.sh --action deploy-all-stacks --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $REGION
+          ./scripts.sh --action deploy-all-stacks --container-registry $REGISTRY --image-tag $IMAGE_TAG --stripe-secret-key $STRIPE_SECRET_KEY --stripe-secret-hook $STRIPE_SECRET_HOOK --region $REGION
           ./scripts.sh --action deploy-agw --image-tag $IMAGE_TAG --region $REGION
           aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE
           aws cloudformation list-stacks --stack-status-filter UPDATE_COMPLETE

@@ -2,6 +2,7 @@ const controller = require("../../utils/controller");
 const { extractUserClaims } = require("../../utils/claims");
 const dto = require("../dto");
 const orderService = require("../services/orderService");
+const ForbiddenError = require("../errors/ForbiddenError");
 
 const getOrders = controller.get(async (req, res, next) => {
   const claims = extractUserClaims(req);
@@ -18,11 +19,15 @@ const getOrder = controller.get(async (req, res, next) => {
 
 const putCancelOrder = controller.put(
   async (req, res, next) => {
+    const claims = extractUserClaims(req);
+    if (claims.role === "admin") {
+      throw new ForbiddenError("Only customer can cancel order.");
+    }
     res.json(
       await orderService.cancelOrder({
         ...req.body,
         orderId: req.params.id,
-        cancelledBy: extractUserClaims(req).email,
+        cancelledBy: claims.email,
       })
     );
   },
@@ -32,11 +37,15 @@ const putCancelOrder = controller.put(
 
 const putRejectOrder = controller.put(
   async (req, res, next) => {
+    const claims = extractUserClaims(req);
+    if (claims.role !== "admin") {
+      throw new ForbiddenError("Only admin can reject order.");
+    }
     res.json(
       await orderService.rejectOrder({
         ...req.body,
         orderId: req.params.id,
-        rejectedBy: extractUserClaims(req).email,
+        rejectedBy: claims.email,
       })
     );
   },
@@ -46,11 +55,15 @@ const putRejectOrder = controller.put(
 
 const putCompleteOrder = controller.put(
   async (req, res, next) => {
+    const claims = extractUserClaims(req);
+    if (claims.role !== "admin") {
+      throw new ForbiddenError("Only admin can complete order.");
+    }
     res.json(
       await orderService.completeOrder({
         ...req.body,
         orderId: req.params.id,
-        completedBy: extractUserClaims(req).email,
+        completedBy: claims.email,
       })
     );
   },

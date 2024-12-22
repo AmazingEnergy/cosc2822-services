@@ -1,3 +1,5 @@
+const { v4: uuidv4 } = require("uuid");
+
 class CartItem {
   /**
    * @param {uuid} cartId
@@ -21,7 +23,7 @@ class CartItem {
     createdAt,
     updatedAt
   ) {
-    this.id = null;
+    this.id = uuidv4();
     this.cartId = cartId;
     this.skuId = skuId;
     this.productName = productName;

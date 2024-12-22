@@ -34,6 +34,8 @@ while [[ "$#" -gt 0 ]]; do
     --container-registry) CONTAINER_REGISTRY="$2"; shift ;;
     --image-tag) IMAGE_TAG="$2"; shift ;;
     --container-repository) CONTAINER_REPOSITORY="$2"; shift ;;
+    --stripe-secret-key) STRIPE_SECRET_KEY="$2"; shift ;;
+    --stripe-secret-hook) STRIPE_SECRET_HOOK="$2"; shift ;;
     *) POSITIONAL+=("$1") ;; # Collect positional arguments
   esac
   shift
@@ -69,6 +71,10 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
 	sed -i -e "s/<Route53DNSStack>/route53-dns-stack/g" ./apigw-endpoints-params.json
 	sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" ./apigw-endpoints-params.json
 	./cli/002-run-cfn.sh apigw-endpoints-stack apigw-endpoints.yaml apigw-endpoints-params.json $REGION
+
+  sed -i -e "s/<StripeSecretKeyValue>/$STRIPE_SECRET_KEY/g" core-secrets-params.json
+  sed -i -e "s/<StripeSecretHookValue>/$STRIPE_SECRET_HOOK/g" core-secrets-params.json
+  ./cli/002-run-cfn.sh core-secrets-stack core-secrets.yaml core-secrets-params.json $REGION
 
   sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" ecs-tasks-params.json
   sed -i -e "s/<NetworkStackName>/network-stack/g" ecs-tasks-params.json

@@ -2,6 +2,7 @@ const NotFoundError = require("../../app/errors/NotFoundError");
 const BadRequestError = require("../../app/errors/BadRequestError");
 const { sum } = require("../../utils/utils");
 
+const cartRepository = require("../../infra/repositories/sequelizeCartRepository");
 const orderRepository = require("../../infra/repositories/sequelizeOrderRepository");
 const models = require("../models");
 
@@ -10,6 +11,7 @@ const listOrders = async (query) => {
     (
       await orderRepository.listOrders(query)
     ).map(async (order) => {
+      const cart = (await cartRepository.findById(order.cartId))?.dataValues;
       const totalAmount = sum(
         order.orderItems.map((item) => item.productPrice * item.quantity)
       );
@@ -22,6 +24,7 @@ const listOrders = async (query) => {
         ...order.dataValues,
         totalAmount: totalAmount,
         discountAmount: discountAmount,
+        payments: cart?.payments || [],
       };
     })
   );
@@ -30,16 +33,19 @@ const listOrders = async (query) => {
 
 const findById = async (id) => {
   const order = await orderRepository.findById(id);
+  if (!order) throw new NotFoundError(`Not found order with id ${id}`);
+  const cart = (await cartRepository.findById(order.cartId))?.dataValues;
   const totalAmount = sum(
-    orderItems.map((item) => item.productPrice * item.quantity)
+    order.orderItems.map((item) => item.productPrice * item.quantity)
   );
   const discountAmount = sum(
-    orderItems.map((item) => (item.discountPrice || 0) * item.quantity)
+    order.orderItems.map((item) => (item.discountPrice || 0) * item.quantity)
   );
   return {
     ...order.dataValues,
     totalAmount: totalAmount,
     discountAmount: discountAmount,
+    payments: cart?.payments || [],
   };
 };
 
@@ -51,7 +57,7 @@ const completeOrder = async (completeOrderDto) => {
     );
   if (orderInDb.status !== models.OrderStatus.New)
     throw new BadRequestError(
-      `Order ${completeOrderDto.orderId} is not allowed to complete.`
+      `Fail to complete. Invalid status of an Order ${completeOrderDto.orderId}.`
     );
   orderInDb.status = models.OrderStatus.Completed;
   orderInDb.updatedAt = new Date();
@@ -68,8 +74,22 @@ const cancelOrder = async (cancelOrderDto) => {
     );
   if (orderInDb.status !== models.OrderStatus.New)
     throw new BadRequestError(
-      `Order ${cancelOrderDto.orderId} is not allowed to cancel.`
+      `Fail to cancel. Invalid status of an Order ${cancelOrderDto.orderId}.`
     );
+
+  let cart = await cartRepository.findById(submitCartDto.cartId);
+  if (
+    cart &&
+    cart.payments &&
+    cart.payments.some(
+      (payment) => payment.status === models.PaymentStatus.Completed
+    )
+  ) {
+    throw new BadRequestError(
+      `Fail to cancel. Order ${completeOrderDto.orderId} has been paid.`
+    );
+  }
+
   orderInDb.status = models.OrderStatus.Cancelled;
   orderInDb.updatedAt = new Date();
   orderInDb.updatedBy = cancelOrderDto.cancelledBy;
@@ -85,8 +105,9 @@ const rejectOrder = async (rejectOrderDto) => {
     );
   if (orderInDb.status !== models.OrderStatus.New)
     throw new BadRequestError(
-      `Order ${rejectOrderDto.orderId} is not allowed to reject.`
+      `Fail to reject. Invalid status of an Order ${rejectOrderDto.orderId}.`
     );
+  // TODO: handle refund payment
   orderInDb.status = models.OrderStatus.Rejected;
   orderInDb.updatedAt = new Date();
   orderInDb.updatedBy = rejectOrderDto.rejectedBy;

@@ -1,3 +1,5 @@
+const { v4: uuidv4 } = require("uuid");
+
 class Cart {
   /**
    * @param {string} customerId
@@ -15,7 +17,7 @@ class Cart {
     updatedBy,
     updatedAt
   ) {
-    this.id = null;
+    this.id = uuidv4();
     this.customerId = customerId;
     this.promotionCode = promotionCode;
     this.submittedAt = null;

@@ -66,7 +66,14 @@ const postUpdateCartItem = controller.post(
 
 const postPayCart = controller.post(
   async (req, res, next) => {
-    // TODO: implement
+    res.json(
+      await cartService.pay({
+        ...req.body,
+        cartId: req.params.id,
+        customerId: extractUserClaims(req).userId,
+        paidBy: extractUserClaims(req).email,
+      })
+    );
   },
   dto.FindCartParams,
   dto.PayCartDto
@@ -75,7 +82,7 @@ const postPayCart = controller.post(
 const postSubmitCart = controller.post(
   async (req, res, next) => {
     res.json(
-      await cartService.submitCart({
+      await cartService.submit({
         ...req.body,
         cartId: req.params.id,
         customerId: extractUserClaims(req).userId,

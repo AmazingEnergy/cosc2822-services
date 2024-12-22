@@ -13,8 +13,6 @@ const UnauthorizedError = require("../app/errors/UnauthorizedError");
  * @returns
  */
 const auth = async (req, res, next) => {
-  console.log("auth middleware", req);
-
   try {
     req.auth = {};
     req.auth.isAuth = false;

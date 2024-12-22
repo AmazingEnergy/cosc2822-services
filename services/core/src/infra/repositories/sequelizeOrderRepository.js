@@ -69,7 +69,7 @@ const addOrder = async (order) => {
  * @type {(order: import("sequelize").Model<any, any>) => Promise<import("sequelize").Model<any, any>>}
  */
 const saveOrder = async (order) => {
-  let savedOrder = order.save();
+  let savedOrder = await order.save();
   return await findById(savedOrder.id);
 };
 

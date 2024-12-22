@@ -26,6 +26,10 @@ const cartItemEntity = db().define("cartItems", {
     type: Sequelize.STRING(255),
     allowNull: false,
   },
+  stockCode: {
+    type: Sequelize.STRING(255),
+    allowNull: false,
+  },
   productPrice: {
     type: Sequelize.DECIMAL(10, 2),
     allowNull: false,

@@ -38,6 +38,10 @@ Mappings:
       CancelOrderResourcePath: "cancel"
       RejectOrderResourcePath: "reject"
       CompleteOrderResourcePath: "complete"
+    Hook:
+      ResourcePath: "hooks"
+      StripeResourcePath: "stripe"
+      StripePaymentResourcePath: "payments"
 
 Resources:
   ###############################################
@@ -238,6 +242,34 @@ Resources:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       PathPart:
         Fn::FindInMap: [Resources, Order, CompleteOrderResourcePath]
+
+  HookResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayRootResourceId"
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Hook, ResourcePath]
+
+  StripeHookResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref HookResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Hook, StripeResourcePath]
+
+  StripePaymentHookResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref StripeHookResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Hook, StripePaymentResourcePath]
 
   ###############################################
   # API Gateway OPTIONS Methods
@@ -768,6 +800,81 @@ Resources:
               method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
 
+  HookResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt HookResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  StripeHookResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt StripeHookResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  StripePaymentHookResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt StripePaymentHookResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
 Outputs:
   ProfileResourceId:
     Value: !GetAtt ProfileResource.ResourceId
@@ -895,3 +1002,21 @@ Outputs:
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-CompleteOrderResourceId"
+  HookResourceId:
+    Value: !GetAtt HookResource.ResourceId
+    Description: Id of Hook resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-HookResourceId"
+  StripeHookResourceId:
+    Value: !GetAtt StripeHookResource.ResourceId
+    Description: Id of StripeHook resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-StripeHookResourceId"
+  StripePaymentHookResourceId:
+    Value: !GetAtt StripePaymentHookResource.ResourceId
+    Description: Id of StripePaymentHook resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-StripePaymentHookResourceId"

@@ -4,6 +4,7 @@ const NotFoundError = require("../errors/NotFoundError");
 const ForbiddenError = require("../errors/ForbiddenError");
 const cartRepository = require("../../infra/repositories/sequelizeCartRepository");
 const orderRepository = require("../../infra/repositories/sequelizeOrderRepository");
+const stripeConnector = require("../../infra/connectors/stripeConnector");
 
 const getCart = async (cartId, customerId) => {
   let cart = await cartRepository.findById(cartId);
@@ -128,7 +129,7 @@ const pay = async (payCartDto) => {
     throw new BadRequestError(`Cart has been submitted`);
   }
   if (
-    cart.payments.any(
+    cart.payments.some(
       (payment) => payment.status === models.PaymentStatus.Completed
     )
   ) {
@@ -189,10 +190,20 @@ const submit = async (submitCartDto) => {
   return order.dataValues;
 };
 
+const paymentNotification = async (data, sig) => {
+  const event = stripeConnector.extractEvent(data, sig);
+  console.log(`Handle event type ${event.type} - ${event.id}`);
+
+  // TODO: handle event
+};
+
 module.exports = {
   getCart,
   createCart,
   addItem,
   updateItem,
   removeItem,
+  pay,
+  submit,
+  paymentNotification,
 };

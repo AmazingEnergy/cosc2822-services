@@ -1,3 +1,4 @@
+const { v4: uuidv4 } = require("uuid");
 const PaymentStatus = require("./paymentStatus");
 
 class Payment {
@@ -17,7 +18,7 @@ class Payment {
     updatedBy,
     updatedAt
   ) {
-    this.id = null;
+    this.id = uuidv4();
     this.cartId = cartId;
     this.paymentReference = paymentReference;
     this.status = PaymentStatus.New;

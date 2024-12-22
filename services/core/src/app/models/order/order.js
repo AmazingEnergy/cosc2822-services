@@ -1,3 +1,4 @@
+const { v4: uuidv4 } = require("uuid");
 const OrderStatus = require("./orderStatus");
 
 class Order {
@@ -29,7 +30,7 @@ class Order {
     updatedBy,
     updatedAt
   ) {
-    this.id = null;
+    this.id = uuidv4();
     this.cartId = cartId;
     this.customerId = customerId;
     this.contactName = contactName;

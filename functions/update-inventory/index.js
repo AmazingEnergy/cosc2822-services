@@ -38,9 +38,7 @@ exports.handler = async (event, context, callback) => {
           S: event.code,
         },
       },
-      UpdateExpression: `SET 
-        #q = :quantity, 
-      `,
+      UpdateExpression: "SET #q = :quantity",
       ExpressionAttributeValues: {
         ":quantity": { N: event.body.quantity.toString() },
       },

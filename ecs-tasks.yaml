@@ -97,7 +97,7 @@ Resources:
         MinimumHealthyPercent: 0
       NetworkConfiguration:
         AwsvpcConfiguration:
-          AssignPublicIp: "DISABLED"
+          AssignPublicIp: "ENABLED"
           Subnets:
             - Fn::ImportValue: !Sub "${NetworkStackName}-LabVPCSubnetPublic1Id"
             - Fn::ImportValue: !Sub "${NetworkStackName}-LabVPCSubnetPublic2Id"

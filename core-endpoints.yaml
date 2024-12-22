@@ -330,6 +330,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -356,6 +358,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: POST
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/carts/{id}/addItem"
@@ -403,6 +407,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -429,6 +435,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: POST
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/carts/{id}/updateItem"
@@ -476,6 +484,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -502,6 +512,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: POST
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/carts/{id}/removeItem"
@@ -549,6 +561,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -575,6 +589,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: POST
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/carts/{id}/pay"
@@ -622,6 +638,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -648,6 +666,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: POST
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/carts/{id}/submit"
@@ -772,6 +792,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -798,6 +820,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: GET
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/orders/{id}"
@@ -845,6 +869,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -871,6 +897,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: PUT
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/orders/{id}/complete"
@@ -918,6 +946,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -944,6 +974,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: PUT
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/orders/{id}/cancel"
@@ -991,6 +1023,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -1017,6 +1051,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: PUT
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/orders/{id}/reject"

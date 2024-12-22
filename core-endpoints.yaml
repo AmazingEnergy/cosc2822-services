@@ -253,6 +253,8 @@ Resources:
       AuthorizationType: "COGNITO_USER_POOLS"
       AuthorizerId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayAuthorizerId"
+      RequestParameters:
+        method.request.path.id: true
       MethodResponses:
         - StatusCode: 200
           ResponseParameters:
@@ -279,6 +281,8 @@ Resources:
       Integration:
         Type: HTTP_PROXY
         IntegrationHttpMethod: GET
+        RequestParameters:
+          integration.request.path.id: "method.request.path.id"
         Uri:
           Fn::Sub:
             - "http://${AlbDnsName}/core/api/carts/{id}"
@@ -1048,6 +1052,10 @@ Resources:
             ResponseParameters:
               method.response.header.Content-Type: "'application/json'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  #############################################
+  # Stripe Payment Hook
+  #############################################
 
   PostStripePaymentHookMethod:
     Type: AWS::ApiGateway::Method

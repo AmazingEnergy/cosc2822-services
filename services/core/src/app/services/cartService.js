@@ -2,9 +2,12 @@ const models = require("../models");
 const BadRequestError = require("../errors/BadRequestError");
 const NotFoundError = require("../errors/NotFoundError");
 const ForbiddenError = require("../errors/ForbiddenError");
+
+const stripeConnector = require("../../infra/connectors/stripeConnector");
+
 const cartRepository = require("../../infra/repositories/sequelizeCartRepository");
 const orderRepository = require("../../infra/repositories/sequelizeOrderRepository");
-const stripeConnector = require("../../infra/connectors/stripeConnector");
+const paymentRepository = require("../../infra/repositories/sequelizePaymentRepository");
 
 const getCart = async (cartId, customerId) => {
   let cart = await cartRepository.findById(cartId);
@@ -136,12 +139,27 @@ const pay = async (payCartDto) => {
     throw new BadRequestError(`Cart has been paid`);
   }
 
-  // TODO: integrate with Stripe
-  // 1. create product and price
-  // 2. create checkout session
+  const pendingPayments = cart.payments.filter(
+    (payment) => payment.status === models.PaymentStatus.New
+  );
+  for (const payment of pendingPayments) {
+    payment.status = models.PaymentStatus.Cancelled;
+    payment.updatedBy = payCartDto.paidBy;
+    await cartRepository.savePayment(payment);
+  }
+
+  const session = await stripeConnector.createSession(
+    cart,
+    payCartDto.returnUrl
+  );
+  console.log(`Generated Stripe checkout session: ${session.id}`);
+
+  await paymentRepository.addPayment(
+    new models.Payment(cart.id, session.id, payCartDto.paidBy)
+  );
 
   return {
-    clientSecret: "<todo>",
+    clientSecret: session.client_secret,
   };
 };
 
@@ -191,10 +209,56 @@ const submit = async (submitCartDto) => {
 };
 
 const paymentNotification = async (data, sig) => {
-  const event = stripeConnector.extractEvent(data, sig);
-  console.log(`Handle event type ${event.type} - ${event.id}`);
+  // https://docs.stripe.com/payments/accept-a-payment?platform=web&ui=embedded-form#post-payment
 
-  // TODO: handle event
+  const event = stripeConnector.extractEvent(data, sig);
+
+  switch (event.type) {
+    case "checkout.session.completed":
+    case "checkout.session.async_payment_succeeded":
+      console.log(`Handle event type ${event.type} - ${event.id}`);
+      const session = await stripeConnector.getSession(event.data.object.id);
+      const cartId = session.metadata.cartId;
+      const cart = await cartRepository.findById(cartId);
+      if (!cart) {
+        console.error(`Not found cart with id ${cartId}`);
+        return;
+      }
+      const payment = cart.payments.find(
+        (payment) => payment.paymentReference === session.id
+      );
+      if (payment) {
+        payment.status = models.PaymentStatus.Completed;
+        payment.updatedBy = "webhook";
+        payment.updatedAt = new Date();
+        await cartRepository.savePayment(payment);
+      }
+      // TODO: send order confirmation email
+      break;
+    case "checkout.session.expired": {
+      console.log(`Handle event type ${event.type} - ${event.id}`);
+      const session = await stripeConnector.getSession(event.data.object.id);
+      const cartId = session.metadata.cartId;
+      const cart = await cartRepository.findById(cartId);
+      if (!cart) {
+        console.error(`Not found cart with id ${cartId}`);
+        return;
+      }
+      const payment = cart.payments.find(
+        (payment) => payment.paymentReference === session.id
+      );
+      if (payment) {
+        payment.status = models.PaymentStatus.Cancelled;
+        payment.updatedBy = "webhook";
+        payment.updatedAt = new Date();
+        await cartRepository.savePayment(payment);
+      }
+      break;
+    }
+    default: {
+      console.warn(`Unhandled event type ${event.type} - ${event.id}`);
+    }
+  }
 };
 
 module.exports = {

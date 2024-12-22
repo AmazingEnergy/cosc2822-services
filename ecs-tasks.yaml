@@ -99,8 +99,8 @@ Resources:
         AwsvpcConfiguration:
           AssignPublicIp: "DISABLED"
           Subnets:
-            - Fn::ImportValue: !Sub "${NetworkStackName}-LabVPCSubnetPrivate1Id"
-            - Fn::ImportValue: !Sub "${NetworkStackName}-LabVPCSubnetPrivate2Id"
+            - Fn::ImportValue: !Sub "${NetworkStackName}-LabVPCSubnetPublic1Id"
+            - Fn::ImportValue: !Sub "${NetworkStackName}-LabVPCSubnetPublic2Id"
           SecurityGroups:
             - Fn::ImportValue: !Sub "${NetworkStackName}-AppSecurityGroupId"
       LoadBalancers:

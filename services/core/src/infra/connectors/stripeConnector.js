@@ -4,13 +4,13 @@ const { getSecretValue } = require("./awsConnector");
 /**
  * @type {Stripe}
  */
-let stripeClient;
+let _stripeClient;
 
-stripeClient = () => {
-  if (!stripeClient) {
+const stripeClient = () => {
+  if (!_stripeClient) {
     const secretKey = getSecretValue(process.env.STRIPE_SECRET_KEY_SECRET_NAME);
 
-    stripeClient = require("stripe")(secretKey, {
+    _stripeClient = require("stripe")(secretKey, {
       maxNetworkRetries: 2,
       apiVersion: "2022-08-01",
       appInfo: {
@@ -19,34 +19,62 @@ stripeClient = () => {
         url: "https://github.com/AmazingEnergy/cosc2822-services",
       },
     });
-    console.log("Successfully initialize stripeClient.");
+    console.log("Successfully initialize stripeClient().");
   }
-  return stripeClient;
+  return _stripeClient;
 };
 
-/**
- *
- * @returns {Promise<{publishableKey: string, prices: Stripe.Price[]}>}
- */
-const getPrices = async () => {
-  const prices = await stripeClient().prices.list({
-    lookup_keys: ["tabletalk_pro"],
-    expand: ["data.product"],
+const getSession = async (sessionId) => {
+  return await stripeClient().checkout.sessions.retrieve(sessionId);
+};
+
+const createSession = async (cart, returnUrl) => {
+  lineItems = [];
+  for (let item of cart.cartItems) {
+    const product = await createProduct(
+      item.productName,
+      item.discountPrice ? item.discountPrice : item.productPrice
+    );
+    lineItems.push({
+      price: product.priceId,
+      quantity: item.quantity,
+    });
+  }
+  const session = await stripeClient().checkout.sessions.create({
+    ui_mode: "embedded",
+    line_items: lineItems,
+    mode: "payment",
+    return_url: `${returnUrl}?session_id={CHECKOUT_SESSION_ID}`,
+    metadata: {
+      cartId: cart.id,
+    },
   });
-
-  return {
-    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
-    prices: prices.data,
-  };
+  return session;
 };
 
 /**
- *
- * @param {string} priceId
- * @returns {Promise<Stripe.Price>}
+ * @param {string} name
+ * @param {number} productPrice
+ * @param {array} imageUrls
+ * @returns {Promise<Stripe.Product>}
  */
-const getPriceById = async (priceId) => {
-  return await stripeClient().prices.retrieve(priceId);
+const createProduct = async (name, productPrice, imageUrls) => {
+  // https://docs.stripe.com/products-prices/how-products-and-prices-work
+
+  const product = await stripeClient().products.create({
+    name: name,
+    images: imageUrls || [],
+  });
+  const price = await stripeClient().prices.create({
+    product: product.id,
+    currency: "usd",
+    unit_amount: parseInt(productPrice),
+    billing_scheme: "per_unit",
+  });
+  return {
+    productId: product.id,
+    priceId: price.id,
+  };
 };
 
 /**
@@ -77,14 +105,6 @@ const createCustomer = async (name, email) => {
 };
 
 /**
- * @param {string} paymentIntentId
- * @returns {Promise<Stripe.PaymentIntent>}
- */
-const getPaymentIntent = async (paymentIntentId) => {
-  return await stripeClient().paymentIntents.retrieve(paymentIntentId);
-};
-
-/**
  *
  * @param {object} data
  * @param {string} sig
@@ -98,10 +118,9 @@ const extractEvent = (data, sig) => {
 };
 
 module.exports = {
-  getPrices,
-  getPriceById,
+  createSession,
+  createProduct,
   getCustomer,
   createCustomer,
-  getPaymentIntent,
   extractEvent,
 };

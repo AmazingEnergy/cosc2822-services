@@ -30,16 +30,17 @@ const processMessageAsync = async (record, context) => {
       console.log(
         `Start handle OrderCreated event of order ${data.orderNumber}`
       );
+      const stepFunctionInput = {
+        orderNumber: data.orderNumber,
+        promotionCode: data.promotionCode,
+        items: data.orderItems.map((item) => ({
+          skuId: item.skuId,
+          quantity: item.quantity,
+        })),
+      };
       const command = new StartExecutionCommand({
         stateMachineArn: process.env.RESERVATION_STEP_FUNCTIONS_ARN,
-        input: {
-          orderNumber: data.orderNumber,
-          promotionCode: data.promotionCode,
-          items: data.orderItems.map((item) => ({
-            skuId: item.skuId,
-            quantity: item.quantity,
-          })),
-        },
+        input: JSON.stringify(stepFunctionInput),
       });
       const response = await sfnClient.send(command);
       console.log(

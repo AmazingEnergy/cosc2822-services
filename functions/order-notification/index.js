@@ -73,7 +73,7 @@ const sendOrderConfirmationEmail = async (data) => {
         },
       },
     },
-    FromEmailAddress: process.env.FROM_EMAIL || "easyshop.onl@grp6asm3.com",
+    FromEmailAddress: process.env.FROM_EMAIL || "easyshop.onl@yopmail.com",
   };
   const command = new SendEmailCommand(params);
   await sesClient.send(command);

@@ -156,10 +156,30 @@ Resources:
             "Comment": "A Hello World example of the Amazon States Language using Pass states",
             "StartAt": "HelloWorld",
             "States": {
+              "ReservationChoice": {
+                "Type": "Choice",
+                "Default": "ReserveStock",
+                "Choices": [
+                  {
+                    "Next": "HelloWorld"
+                    "Variable": "$.promotionCode",
+                    "IsPresent": true
+                  },
+                ],
+              },
+              "ReserveStock": {
+                "Type": "Task",
+                "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:ReserveStock",
+                "Next": "HelloWorld",
+              },
               "HelloWorld": {
                 "Type": "Pass",
                 "Result": "Hello, World!",
-                "End": true
+                "Next": "DisplayResult"
+              },
+              "DisplayResult": {
+                "Type": "Pass",
+                "End": true,
               }
             }
           }

@@ -74,6 +74,9 @@ Resources:
         ImageUri: !Sub "${ContainerRegistry}/${FunctionRepository}:${ImageTag}"
       Timeout: 30
       MemorySize: 128
+      Environment:
+        Variables:
+          REGION_STR: !Ref "AWS::Region"
       LoggingConfig:
         ApplicationLogLevel: INFO
         LogFormat: JSON

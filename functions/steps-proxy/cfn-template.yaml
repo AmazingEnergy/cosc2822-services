@@ -76,6 +76,10 @@ Resources:
         ImageUri: !Sub "${ContainerRegistry}/${FunctionRepository}:${ImageTag}"
       Timeout: 30
       MemorySize: 128
+      Environment:
+        Variables:
+          REGION_STR: !Ref "AWS::Region"
+          RESERVATION_STEP_FUNCTIONS_ARN: !GetAtt ReservationStateMachine.Arn
       LoggingConfig:
         ApplicationLogLevel: INFO
         LogFormat: JSON
@@ -113,3 +117,50 @@ Resources:
       MaximumBatchingWindowInSeconds: 0
       ScalingConfig:
         MaximumConcurrency: 2
+
+  ###############################################
+  # Step Functions
+  ###############################################
+
+  StateMachineExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - states.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: StepFunctionsExecutionPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                  - lambda:InvokeAsync
+                  - states:*
+                Resource: "*"
+
+  ReservationStateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Sub "${FunctionName}-StateMachine"
+      DefinitionString:
+        Fn::Sub: |
+          {
+            "Comment": "A Hello World example of the Amazon States Language using Pass states",
+            "StartAt": "HelloWorld",
+            "States": {
+              "HelloWorld": {
+                "Type": "Pass",
+                "Result": "Hello, World!",
+                "End": true
+              }
+            }
+          }
+      RoleArn: !GetAtt StateMachineExecutionRole.Arn

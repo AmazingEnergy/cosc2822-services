@@ -11,7 +11,7 @@ const inventoryTableName = process.env.INVENTORY_TABLE_NAME || "Inventory";
 exports.handler = async (event, context, callback) => {
   console.log("Received Event: ", event);
   try {
-    limit = 10;
+    let limit = 10;
     if (event.limit && !isNaN(event.limit)) {
       limit = parseInt(event.limit);
     }

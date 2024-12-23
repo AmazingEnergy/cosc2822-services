@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudFormation template to create reservation-steps-proxy-function
+Description: CloudFormation template to create steps-proxy-function
 
 Parameters:
   FunctionName:
     Type: String
     Description: function name
-    Default: ReservationStepsProxy
+    Default: StepsProxy
   FunctionRepository:
     Type: String
     Description: function ECR repository

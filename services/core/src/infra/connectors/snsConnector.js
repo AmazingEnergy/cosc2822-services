@@ -3,23 +3,21 @@ const { getSecretValue } = require("./awsConnector");
 
 /**
  * Publish order event to SNS
- * @param {string} id
  * @param {string} messageType
  * @param {object} message
  */
-const publicOrderEvent = async (id, messageType, message) => {
+const publicOrderEvent = async (messageType, message) => {
   const topicArn = getSecretValue(process.env.ORDER_SNS_TOPIC_ARN_SECRET_NAME);
-  await publishEvent(topicArn, id, messageType, message);
+  await publishEvent(topicArn, messageType, message);
 };
 
 /**
  * Publish event to SNS
  * @param {string} topicArn
- * @param {string} id
  * @param {string} messageType
  * @param {object} message
  */
-const publishEvent = async (topicArn, id, messageType, message) => {
+const publishEvent = async (topicArn, messageType, message) => {
   try {
     console.log(`Publish event ${messageType} to topic ${topicArn}`);
     const snsClient = new SNSClient({
@@ -28,7 +26,6 @@ const publishEvent = async (topicArn, id, messageType, message) => {
     const command = new PublishCommand({
       TopicArn: topicArn,
       Message: JSON.stringify(message),
-      MessageDeduplicationId: id,
       MessageAttributes: {
         messageType: {
           DataType: "String",

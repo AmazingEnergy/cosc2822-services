@@ -48,6 +48,7 @@ const createSession = async (cart, returnUrl) => {
     metadata: {
       cartId: cart.id,
     },
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
   });
   return session;
 };

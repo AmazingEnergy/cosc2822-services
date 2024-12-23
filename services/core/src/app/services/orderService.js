@@ -63,11 +63,7 @@ const completeOrder = async (completeOrderDto) => {
   orderInDb.updatedAt = new Date();
   orderInDb.updatedBy = completeOrderDto.completedBy;
   const savedOrder = await orderRepository.saveOrder(orderInDb);
-  await snsConnector.publicOrderEvent(
-    `order-completed-${savedOrder.id}`,
-    "OrderCompleted",
-    savedOrder.dataValues
-  );
+  await snsConnector.publicOrderEvent("OrderCompleted", savedOrder.dataValues);
   return savedOrder.dataValues;
 };
 
@@ -84,9 +80,7 @@ const cancelOrder = async (cancelOrderDto) => {
 
   let cart = await cartRepository.findById(submitCartDto.cartId);
   if (
-    cart &&
-    cart.payments &&
-    cart.payments.some(
+    cart?.payments?.some(
       (payment) => payment.status === models.PaymentStatus.Completed
     )
   ) {
@@ -99,11 +93,7 @@ const cancelOrder = async (cancelOrderDto) => {
   orderInDb.updatedAt = new Date();
   orderInDb.updatedBy = cancelOrderDto.cancelledBy;
   const savedOrder = await orderRepository.saveOrder(orderInDb);
-  await snsConnector.publicOrderEvent(
-    `order-cancelled-${savedOrder.id}`,
-    "OrderCancelled",
-    savedOrder.dataValues
-  );
+  await snsConnector.publicOrderEvent("OrderCancelled", savedOrder.dataValues);
   return savedOrder.dataValues;
 };
 
@@ -122,11 +112,7 @@ const rejectOrder = async (rejectOrderDto) => {
   orderInDb.updatedAt = new Date();
   orderInDb.updatedBy = rejectOrderDto.rejectedBy;
   const savedOrder = await orderRepository.saveOrder(orderInDb);
-  await snsConnector.publicOrderEvent(
-    `order-rejected-${savedOrder.id}`,
-    "OrderRejected",
-    savedOrder.dataValues
-  );
+  await snsConnector.publicOrderEvent("OrderRejected", savedOrder.dataValues);
   return savedOrder.dataValues;
 };
 

@@ -209,11 +209,7 @@ const submit = async (submitCartDto) => {
 
   const createdOrder = await orderRepository.findById(order.id);
   console.log(`Created order: ${createdOrder.id}`);
-  await snsConnector.publicOrderEvent(
-    `order-created-${createdOrder.id}`,
-    "OrderCreated",
-    createdOrder.dataValues
-  );
+  await snsConnector.publicOrderEvent("OrderCreated", createdOrder.dataValues);
 
   return createdOrder.dataValues;
 };
@@ -243,11 +239,7 @@ const paymentNotification = async (data, sig) => {
         payment.updatedAt = new Date();
         await cartRepository.savePayment(payment);
       }
-      await snsConnector.publicOrderEvent(
-        `cart-pay-success-${cart.id}`,
-        "CartPaySuccess",
-        cart.dataValues
-      );
+      await snsConnector.publicOrderEvent("CartPaySuccess", cart.dataValues);
       break;
     case "checkout.session.expired": {
       console.log(`Handle event type ${event.type} - ${event.id}`);
@@ -267,11 +259,7 @@ const paymentNotification = async (data, sig) => {
         payment.updatedAt = new Date();
         await cartRepository.savePayment(payment);
       }
-      await snsConnector.publicOrderEvent(
-        `cart-pay-fail-${cart.id}`,
-        "CartPayFail",
-        cart.dataValues
-      );
+      await snsConnector.publicOrderEvent("CartPayFail", cart.dataValues);
       break;
     }
     default: {

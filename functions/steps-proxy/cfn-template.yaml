@@ -167,15 +167,15 @@ Resources:
                   }
                 ]
               },
+              "HelloWorld": {
+                "Type": "Pass",
+                "Result": "Hello, World!",
+                "Next": "ReserveStock"
+              },
               "ReserveStock": {
                 "Type": "Task",
                 "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:ReserveStock",
                 "Next": "HelloWorld"
-              },
-              "HelloWorld": {
-                "Type": "Pass",
-                "Result": "Hello, World!",
-                "Next": "DisplayResult"
               },
               "DisplayResult": {
                 "Type": "Pass",

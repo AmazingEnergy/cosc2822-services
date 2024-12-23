@@ -1,6 +1,6 @@
 const { SESv2Client, SendEmailCommand } = require("@aws-sdk/client-sesv2");
 
-export const handler = async (event, context) => {
+exports.handler = async (event, context) => {
   console.log("Received Event: ", event);
   // https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-errorhandling.html
   const batchItemFailures = [];
@@ -17,10 +17,10 @@ export const handler = async (event, context) => {
   return { batchItemFailures };
 };
 
-async function processMessageAsync(record, context) {
+const processMessageAsync = async (record, context) => {
   const { body } = record;
   if (!body) return;
   console.log("Message Body: ", body);
 
   // TODO: send email notification
-}
+};

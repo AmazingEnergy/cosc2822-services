@@ -1,6 +1,6 @@
 const { SFNClient, StartExecutionCommand } = require("@aws-sdk/client-sfn");
 
-export const handler = async (event, context) => {
+exports.handler = async (event, context) => {
   console.log("Received Event: ", event);
   // https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-errorhandling.html
   const batchItemFailures = [];
@@ -17,11 +17,11 @@ export const handler = async (event, context) => {
   return { batchItemFailures };
 };
 
-async function processMessageAsync(record, context) {
+const processMessageAsync = async (record, context) => {
   // https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#example-standard-queue-message-event
   const { body } = record;
   if (!body) return;
   console.log("Message Body: ", body);
 
   // TODO: start sync step function
-}
+};

@@ -109,6 +109,5 @@ Resources:
         - "ReportBatchItemFailures"
       Enabled: true
       MaximumBatchingWindowInSeconds: 0
-      StartingPosition: LATEST
       ScalingConfig:
         MaximumConcurrency: 2

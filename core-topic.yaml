@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "AWS CloudFormation template for creating SNS Topic"
+
+Parameters:
+  OrderTopicName:
+    Type: String
+    Description: "Name of the SNS Topic"
+    Default: "order-topic"
+  OrderProcessQueueName:
+    Type: String
+    Description: "Name of the Order Process Queue"
+    Default: "order-process-queue"
+  OrderNotificationQueueName:
+    Type: String
+    Description: "Name of the Order Notification Queue"
+    Default: "order-notification-queue"
+
+Resources:
+  ########################################
+  # SNS Topic
+  ########################################
+
+  OrderTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      DisplayName: !Ref OrderTopicName
+      TopicName: !Ref OrderTopicName
+
+  OrderTopicPolicy:
+    Type: "AWS::SNS::TopicPolicy"
+    Properties:
+      Topics:
+        - !Ref OrderTopic
+      PolicyDocument:
+        Id: !Sub "${OrderTopicName}-policy"
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "ecs-tasks.amazonaws.com"
+            Action: "sns:Publish"
+            Resource: !Ref OrderTopic
+
+  OrderTopicArnParameter:
+    Type: "AWS::SSM::Parameter"
+    Properties:
+      Name: "/shop/topic/orderTopic"
+      Type: "String"
+      Value: !GetAtt OrderTopic.TopicArn
+
+  ########################################
+  # SQS Queues
+  ########################################
+
+  OrderProcessQueue:
+    Type: "AWS::SQS::Queue"
+    DeletionPolicy: "Delete"
+    UpdateReplacePolicy: "Delete"
+    Properties:
+      QueueName: !Ref OrderProcessQueueName
+      MessageRetentionPeriod: 3600
+
+  OrderProcessQueueSubscription:
+    Type: "AWS::SNS::Subscription"
+    Properties:
+      Protocol: "sqs"
+      TopicArn: !Ref OrderTopic
+      Endpoint: !GetAtt OrderProcessQueue.Arn
+
+  OrderProcessQueuePolicy:
+    Type: "AWS::SQS::QueuePolicy"
+    Properties:
+      Queues:
+        - !Ref OrderProcessQueue
+      PolicyDocument:
+        Id: !Sub "${OrderProcessQueueName}-policy"
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "sns.amazonaws.com"
+            Action: "sqs:SendMessage"
+            Resource: !GetAtt OrderProcessQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref OrderTopic
+
+  OrderNotificationQueue:
+    Type: "AWS::SQS::Queue"
+    DeletionPolicy: "Delete"
+    UpdateReplacePolicy: "Delete"
+    Properties:
+      QueueName: !Ref OrderNotificationQueueName
+      MessageRetentionPeriod: 3600
+
+  OrderNotificationQueueSubscription:
+    Type: "AWS::SNS::Subscription"
+    Properties:
+      Protocol: "sqs"
+      TopicArn: !Ref OrderTopic
+      Endpoint: !GetAtt OrderNotificationQueue.Arn
+
+  OrderNotificationQueuePolicy:
+    Type: "AWS::SQS::QueuePolicy"
+    Properties:
+      Queues:
+        - !Ref OrderNotificationQueue
+      PolicyDocument:
+        Id: !Sub "${OrderNotificationQueueName}-policy"
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "sns.amazonaws.com"
+            Action: "sqs:SendMessage"
+            Resource: !GetAtt OrderNotificationQueue.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !Ref OrderTopic
+
+Outputs:
+  OrderTopicArn:
+    Description: "ARN of the Order Topic"
+    Value: !GetAtt OrderTopic.TopicArn
+    Export:
+      Name: !Sub "${AWS::StackName}-OrderTopicArn"
+  OrderTipcName:
+    Description: "Name of the Order Topic"
+    Value: !GetAtt OrderTopic.TopicName
+    Export:
+      Name: !Sub "${AWS::StackName}-OrderTopicName"
+  OrderProcessQueueArn:
+    Description: "ARN of the Order Process Queue"
+    Value: !GetAtt OrderProcessQueue.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-OrderProcessQueueArn"
+  OrderNotificationQueueArn:
+    Description: "ARN of the Order Notification Queue"
+    Value: !GetAtt OrderNotificationQueue.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-OrderNotificationQueueArn"

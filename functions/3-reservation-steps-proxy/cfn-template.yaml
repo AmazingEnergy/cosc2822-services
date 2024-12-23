@@ -1,0 +1,116 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to create reservation-steps-proxy-function
+
+Parameters:
+  FunctionName:
+    Type: String
+    Description: function name
+    Default: ReservationStepsProxy
+  FunctionRepository:
+    Type: String
+    Description: function ECR repository
+  CoreTopicStack:
+    Type: String
+    Description: stack name
+  ContainerRegistry:
+    Type: String
+    Description: container registry
+  ImageTag:
+    Type: String
+    Description: image tag
+
+Resources:
+  # https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
+  # https://docs.aws.amazon.com/lambda/latest/dg/permissions-managed-policies.html
+  # https://docs.aws.amazon.com/lambda/latest/dg/images-create.html
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaECRImageRetrievalPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:SetRepositoryPolicy
+                  - ecr:GetRepositoryPolicy
+                  - ecr:InitiateLayerUpload
+                  - dynamodb:BatchGetItem
+                  - dynamodb:GetItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:PutItem
+                  - dynamodb:UpdateIte
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - kms:Decrypt
+                  - states:StartExecution
+                  - states:StartSyncExecution
+                  - states:StopExecution
+                Resource: "*"
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: !Ref FunctionName
+      Code:
+        ImageUri: !Sub "${ContainerRegistry}/${FunctionRepository}:${ImageTag}"
+      Timeout: 30
+      MemorySize: 128
+      LoggingConfig:
+        ApplicationLogLevel: INFO
+        LogFormat: JSON
+        LogGroup:
+          Fn::Join:
+            - ""
+            - - "/aws/lambda/"
+              - !Ref FunctionName
+        SystemLogLevel: INFO
+
+  ApiGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - "/aws/lambda/"
+            - !Ref LambdaFunction
+      RetentionInDays: 1
+
+  # https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-eventsource
+
+  LambdaFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 10
+      EventSourceArn:
+        Fn::ImportValue: !Sub "${CoreTopicStack}-OrderProcessQueueArn"
+      FunctionName: !Ref LambdaFunction
+      FunctionResponseTypes:
+        - "ReportBatchItemFailures"
+      Enabled: true
+      MaximumBatchingWindowInSeconds: 0
+      StartingPosition: LATEST
+      ScalingConfig:
+        MaximumConcurrency: 2

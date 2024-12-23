@@ -20,6 +20,7 @@ var _localOnlySecrets = {
   "/shop/auth/issuer": process.env.AUTH_ISSUER_SECRET_NAME,
   "/shop/stripe/secretKey": process.env.STRIPE_SECRET_KEY_SECRET_NAME,
   "/shop/stripe/webhookSecret": process.env.STRIPE_WEBHOOK_SECRET_SECRET_NAME,
+  "/shop/topic/orderTopic": process.env.ORDER_SNS_TOPIC_ARN_SECRET_NAME,
 };
 
 var _remoteSecrets = {};

@@ -4,6 +4,7 @@ const NotFoundError = require("../errors/NotFoundError");
 const ForbiddenError = require("../errors/ForbiddenError");
 
 const stripeConnector = require("../../infra/connectors/stripeConnector");
+const snsConnector = require("../../infra/connectors/snsConnector");
 
 const cartRepository = require("../../infra/repositories/sequelizeCartRepository");
 const orderRepository = require("../../infra/repositories/sequelizeOrderRepository");
@@ -205,7 +206,16 @@ const submit = async (submitCartDto) => {
 
   cart.submittedAt = new Date();
   await cartRepository.saveCart(cart);
-  return order.dataValues;
+
+  const createdOrder = await orderRepository.findById(order.id);
+  console.log(`Created order: ${createdOrder.id}`);
+  await snsConnector.publicOrderEvent(
+    `order-created-${createdOrder.id}`,
+    "OrderCreated",
+    createdOrder.dataValues
+  );
+
+  return createdOrder.dataValues;
 };
 
 const paymentNotification = async (data, sig) => {
@@ -233,7 +243,11 @@ const paymentNotification = async (data, sig) => {
         payment.updatedAt = new Date();
         await cartRepository.savePayment(payment);
       }
-      // TODO: send order confirmation email
+      await snsConnector.publicOrderEvent(
+        `cart-pay-success-${cart.id}`,
+        "CartPaySuccess",
+        cart.dataValues
+      );
       break;
     case "checkout.session.expired": {
       console.log(`Handle event type ${event.type} - ${event.id}`);
@@ -253,6 +267,11 @@ const paymentNotification = async (data, sig) => {
         payment.updatedAt = new Date();
         await cartRepository.savePayment(payment);
       }
+      await snsConnector.publicOrderEvent(
+        `cart-pay-fail-${cart.id}`,
+        "CartPayFail",
+        cart.dataValues
+      );
       break;
     }
     default: {

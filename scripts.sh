@@ -76,13 +76,15 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
   sed -i -e "s/<StripeSecretHookValue>/$STRIPE_SECRET_HOOK/g" core-secrets-params.json
   ./cli/002-run-cfn.sh core-secrets-stack core-secrets.yaml core-secrets-params.json $REGION
 
-  sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<NetworkStackName>/network-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<AlbStackName>/alb-stack/g" ecs-tasks-params.json
-  sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" ecs-tasks-params.json
-  sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" ecs-tasks-params.json
-  ./cli/002-run-cfn.sh ecs-tasks-stack ecs-tasks.yaml ecs-tasks-params.json $REGION
+  ./cli/002-run-cfn.sh core-topic-stack core-topic.yaml core-topic-params.json $REGION
+
+  sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" core-tasks-params.json
+  sed -i -e "s/<NetworkStackName>/network-stack/g" core-tasks-params.json
+  sed -i -e "s/<AlbStackName>/alb-stack/g" core-tasks-params.json
+  sed -i -e "s/<AlbStackName>/alb-stack/g" core-tasks-params.json
+  sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" core-tasks-params.json
+  sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" core-tasks-params.json
+  ./cli/002-run-cfn.sh ecs-tasks-stack core-tasks.yaml core-tasks-params.json $REGION
 
   sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" core-endpoints-params.json
   sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" core-endpoints-params.json
@@ -99,6 +101,7 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
 
       sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" "$dir/cfn-template-params.json"
       sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" "$dir/cfn-template-params.json"
+      sed -i -e "s/<CoreTopicStack>/core-topic-stack/g" "$dir/cfn-template-params.json"
       sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" "$dir/cfn-template-params.json"
       sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" "$dir/cfn-template-params.json"
       sed -i -e "s/<FunctionRepository>/$function_name-func/g" "$dir/cfn-template-params.json"

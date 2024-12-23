@@ -36,6 +36,7 @@ while [[ "$#" -gt 0 ]]; do
     --container-repository) CONTAINER_REPOSITORY="$2"; shift ;;
     --stripe-secret-key) STRIPE_SECRET_KEY="$2"; shift ;;
     --stripe-secret-hook) STRIPE_SECRET_HOOK="$2"; shift ;;
+    --changed-files) CHANGED_FILES="$2"; shift ;;
     *) POSITIONAL+=("$1") ;; # Collect positional arguments
   esac
   shift
@@ -78,13 +79,18 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
 
   ./cli/002-run-cfn.sh core-topic-stack core-topic.yaml core-topic-params.json $REGION
 
-  sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" core-tasks-params.json
-  sed -i -e "s/<NetworkStackName>/network-stack/g" core-tasks-params.json
-  sed -i -e "s/<AlbStackName>/alb-stack/g" core-tasks-params.json
-  sed -i -e "s/<AlbStackName>/alb-stack/g" core-tasks-params.json
-  sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" core-tasks-params.json
-  sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" core-tasks-params.json
-  ./cli/002-run-cfn.sh ecs-tasks-stack core-tasks.yaml core-tasks-params.json $REGION
+  # if no files in $CHANGED_FILES contains "services/core", then skip
+  if [ -n "$CHANGED_FILES" ] && [[ ! "$CHANGED_FILES" == *"services/core"* ]]; then
+    echo "Skipping deploy core service"
+  else
+    sed -i -e "s/<ClusterStackName>/ecs-cluster-stack/g" core-tasks-params.json
+    sed -i -e "s/<NetworkStackName>/network-stack/g" core-tasks-params.json
+    sed -i -e "s/<AlbStackName>/alb-stack/g" core-tasks-params.json
+    sed -i -e "s/<AlbStackName>/alb-stack/g" core-tasks-params.json
+    sed -i -e "s/<ContainerRegistry>/$CONTAINER_REGISTRY/g" core-tasks-params.json
+    sed -i -e "s/<ImageTag>/$IMAGE_TAG/g" core-tasks-params.json
+    ./cli/002-run-cfn.sh ecs-tasks-stack core-tasks.yaml core-tasks-params.json $REGION
+  fi
 
   sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" core-endpoints-params.json
   sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" core-endpoints-params.json
@@ -95,6 +101,12 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
     if [ -d "$dir" ]; then
       function_name=$(basename "$dir")
       if [ ! -f "$dir/cfn-template.yaml" ]; then
+        echo "Skipping $function_name"
+        continue
+      fi
+
+      # if no files in $CHANGED_FILES contains $function_name, then skip
+      if [ -n "$CHANGED_FILES" ] && [[ ! "$CHANGED_FILES" == *"$function_name"* ]]; then
         echo "Skipping $function_name"
         continue
       fi

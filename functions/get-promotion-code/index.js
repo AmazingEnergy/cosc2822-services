@@ -33,6 +33,12 @@ exports.handler = async (event, context, callback) => {
     }
 
     const promotionCode = unmarshall(promotionCodeResponse.Item);
+    promotionCode.availableFrom = new Date(
+      promotionCode.availableFrom
+    ).toISOString();
+    promotionCode.availableTo = new Date(
+      promotionCode.availableTo
+    ).toISOString();
 
     return {
       statusCode: 200,

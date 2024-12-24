@@ -50,7 +50,7 @@ exports.handler = async (event, context, callback) => {
     let params = {
       TableName: promotionCodeTableName,
       Key: {
-        stockCode: {
+        code: {
           S: event.code,
         },
       },
@@ -99,9 +99,18 @@ exports.handler = async (event, context, callback) => {
       })
     );
 
+    const promotionCode = unmarshall(promotionCodeResponse.Item);
+
+    promotionCode.availableFrom = new Date(
+      promotionCode.availableFrom
+    ).toISOString();
+    promotionCode.availableTo = new Date(
+      promotionCode.availableTo
+    ).toISOString();
+
     return {
       statusCode: 200,
-      body: unmarshall(promotionCodeResponse.Item),
+      body: promotionCode,
     };
   } catch (error) {
     console.error(error);

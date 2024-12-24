@@ -68,6 +68,15 @@ exports.handler = async (event, context, callback) => {
       JSON.stringify(promotionCodes)
     );
 
+    promotionCodes.forEach((promotionCode) => {
+      promotionCode.availableFrom = new Date(
+        promotionCode.availableFrom
+      ).toISOString();
+      promotionCode.availableTo = new Date(
+        promotionCode.availableTo
+      ).toISOString();
+    });
+
     if (promotionCodeResponse.LastEvaluatedKey) {
       return {
         statusCode: 200,

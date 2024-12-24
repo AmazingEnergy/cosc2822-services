@@ -75,9 +75,28 @@ exports.handler = async (event, context, callback) => {
       JSON.stringify(promotionCodeResponse)
     );
 
+    promotionCodeResponse = await client.send(
+      new GetItemCommand({
+        TableName: promotionCodeTableName,
+        Key: {
+          code: {
+            S: event.code,
+          },
+        },
+      })
+    );
+
+    const promotionCode = unmarshall(promotionCodeResponse.Item);
+    promotionCode.availableFrom = new Date(
+      promotionCode.availableFrom
+    ).toISOString();
+    promotionCode.availableTo = new Date(
+      promotionCode.availableTo
+    ).toISOString();
+
     return {
       statusCode: 200,
-      body: unmarshall(promotionCodeResponse.Item),
+      body: promotionCode,
     };
   } catch (error) {
     if (error.code === "ConditionalCheckFailedException") {

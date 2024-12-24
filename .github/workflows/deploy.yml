@@ -145,8 +145,11 @@ jobs:
           aws s3 ls
           chmod +x ./scripts.sh
           ./scripts.sh --action deploy-all-stacks --container-registry $REGISTRY --image-tag $IMAGE_TAG --stripe-secret-key $STRIPE_SECRET_KEY --stripe-secret-hook $STRIPE_SECRET_HOOK --changed-files $ALL_CHANGED_FILES --region $REGION
+
           ./scripts.sh --action deploy-agw --image-tag $IMAGE_TAG --region $REGION
+
           ./scripts.sh --action add-cognito-trigger --changed-files $ALL_CHANGED_FILES --region $REGION
+
           aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE
           aws cloudformation list-stacks --stack-status-filter UPDATE_COMPLETE
           aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE --region us-east-1

@@ -15,6 +15,8 @@ exports.handler = async (event, context, callback) => {
 
   const email = event.request.userAttributes.email;
 
+  console.log("New registered user email: ", email);
+
   if (email) {
     try {
       await autoAddSesIdentity(email);

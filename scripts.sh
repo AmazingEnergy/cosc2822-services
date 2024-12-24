@@ -199,7 +199,7 @@ if [[ "$ACTION" == "add-cognito-trigger" ]]; then
     echo "Skipping add cognito trigger user-registration"
   else
     LAMBDA_ARN=$(./cli/008-get-cfn-output.sh user-registration-function-stack LambdaFunctionArn $REGION)
-    ./cli/019-auto-deploy-agw.sh $USER_POO_ID $LAMBDA_ARN $REGION
+    ./cli/020-user-pool-function.sh $USER_POO_ID $LAMBDA_ARN $REGION
   fi
   exit 0
 fi

@@ -162,8 +162,8 @@ Resources:
                 "Choices": [
                   {
                     "Variable": "$.promotionCode",
-                    "IsPresent": true
-                    "Next": "ReservePromotionCode",
+                    "IsPresent": true,
+                    "Next": "ReservePromotionCode"
                   }
                 ]
               },

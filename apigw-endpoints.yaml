@@ -22,7 +22,9 @@ Mappings:
     Promotion:
       ResourcePath: "promotion"
       PromotionCodeResourcePath: "codes"
+      PromotionCodeCodeResourcePath: "{code}"
       PromotionRuleResourcePath: "rules"
+      PromotionRuleNameResourcePath: "{name}"
       ApplyPromotionResourcePath: "apply"
     Cart:
       ResourcePath: "carts"
@@ -115,6 +117,15 @@ Resources:
       PathPart:
         Fn::FindInMap: [Resources, Promotion, PromotionCodeResourcePath]
 
+  PromotionCodeCodeResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref PromotionCodeResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Promotion, PromotionCodeCodeResourcePath]
+
   PromotionRuleResource:
     Type: "AWS::ApiGateway::Resource"
     Properties:
@@ -123,6 +134,15 @@ Resources:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       PathPart:
         Fn::FindInMap: [Resources, Promotion, PromotionRuleResourcePath]
+
+  PromotionRuleNameResource:
+    Type: "AWS::ApiGateway::Resource"
+    Properties:
+      ParentId: !Ref PromotionRuleResource
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      PathPart:
+        Fn::FindInMap: [Resources, Promotion, PromotionRuleNameResourcePath]
 
   ApplyPromotionResource:
     Type: "AWS::ApiGateway::Resource"
@@ -450,12 +470,62 @@ Resources:
               method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
               method.response.header.Access-Control-Allow-Origin: "'*'"
 
+  PromotionCodeCodeResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt PromotionCodeCodeResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
   PromotionRuleResourceOptionsMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId:
         Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
       ResourceId: !GetAtt PromotionRuleResource.ResourceId
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      MethodResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+      Integration:
+        Type: MOCK
+        RequestTemplates: { "application/json": '{"statusCode": 200}' }
+        PassthroughBehavior: NEVER
+        IntegrationResponses:
+          - StatusCode: 200
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PATCH,PUT,POST,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+
+  PromotionRuleNameResourceOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId:
+        Fn::ImportValue: !Sub "${ApiGatewayStack}-ApiGatewayId"
+      ResourceId: !GetAtt PromotionRuleNameResource.ResourceId
       HttpMethod: OPTIONS
       AuthorizationType: NONE
       MethodResponses:

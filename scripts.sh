@@ -189,3 +189,17 @@ if [[ "$ACTION" == "clean-repositories" ]]; then
 	./cli/018-clean-repositories.sh $REGION
 	exit 0
 fi
+
+if [[ "$ACTION" == "add-cognito-trigger" ]]; then
+  chmod +x ./cli/008-get-cfn-output.sh
+  chmod +x ./cli/020-user-pool-function.sh
+	USER_POO_ID=$(./cli/008-get-cfn-output.sh cognito-stack CognitoUserPoolId $REGION)
+
+  if [ -n "$CHANGED_FILES" ] && [[ ! "$CHANGED_FILES" == *"user-registration/"* ]]; then
+    echo "Skipping add cognito trigger user-registration"
+  else
+    LAMBDA_ARN=$(./cli/008-get-cfn-output.sh user-registration-function-stack LambdaFunctionArn $REGION)
+    ./cli/019-auto-deploy-agw.sh $USER_POO_ID $LAMBDA_ARN $REGION
+  fi
+  exit 0
+fi

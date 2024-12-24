@@ -1,19 +1,6 @@
-const {
-  SESv2Client,
-  SendEmailCommand,
-  ListEmailIdentitiesCommand,
-  CreateEmailIdentityCommand,
-} = require("@aws-sdk/client-sesv2");
-const {
-  SESClient,
-  VerifyEmailIdentityCommand,
-} = require("@aws-sdk/client-ses");
+const { SESv2Client, SendEmailCommand } = require("@aws-sdk/client-sesv2");
 
 const sesV2Client = new SESv2Client({
-  region: process.env.REGION_STR || "ap-southeast-1",
-});
-
-const sesClient = new SESClient({
   region: process.env.REGION_STR || "ap-southeast-1",
 });
 
@@ -66,10 +53,6 @@ const readRecord = (record) => {
 
 const sendOrderConfirmationEmail = async (data) => {
   const { orderNumber, contactEmail, contactName } = data;
-
-  await tryVerifyEmail(emailFrom);
-  await tryVerifyEmail(contactEmail);
-
   const params = {
     Destination: {
       ToAddresses: [contactEmail],
@@ -153,40 +136,4 @@ const sendOrderConfirmationEmail = async (data) => {
   const command = new SendEmailCommand(params);
   await sesV2Client.send(command);
   console.log("Successfully sent order confirmation email");
-};
-
-const tryVerifyEmail = async (email) => {
-  // https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses-procedure.html
-
-  const listIdentitiesResponse = await sesV2Client.send(
-    new ListEmailIdentitiesCommand({
-      PageSize: Number(process.env.PAGE_SIZE || "1000"),
-    })
-  );
-
-  const identity = listIdentitiesResponse.EmailIdentities.find(
-    (item) =>
-      item.IdentityName === email && item.IdentityType === "EMAIL_ADDRESS"
-  );
-
-  if (!identity) {
-    const createIdentityResponse = await sesV2Client.send(
-      new CreateEmailIdentityCommand({
-        EmailIdentity: email,
-      })
-    );
-
-    console.log("Create Identity Response: ", createIdentityResponse);
-  }
-
-  if (identity && identity.VerificationStatus === "SUCCESS") {
-    console.log("Email is already verified");
-    return;
-  }
-
-  await sesClient.send(
-    new VerifyEmailIdentityCommand({
-      EmailAddress: email,
-    })
-  );
 };

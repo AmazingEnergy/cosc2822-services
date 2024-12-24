@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CloudFormation template to create user-registration-function
+
+Parameters:
+  FunctionName:
+    Type: String
+    Description: function name
+    Default: UserRegistration
+  FunctionRepository:
+    Type: String
+    Description: function ECR repository
+  ContainerRegistry:
+    Type: String
+    Description: container registry
+  ImageTag:
+    Type: String
+    Description: image tag
+
+Resources:
+  # https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
+  # https://docs.aws.amazon.com/lambda/latest/dg/permissions-managed-policies.html
+  # https://docs.aws.amazon.com/lambda/latest/dg/images-create.html
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaECRImageRetrievalPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecr:BatchGetImage
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:SetRepositoryPolicy
+                  - ecr:GetRepositoryPolicy
+                  - ecr:InitiateLayerUpload
+                  - ses:SendEmail
+                  - ses:SendTemplatedEmail
+                  - ses:ListEmailIdentities
+                  - ses:CreateEmailIdentity
+                  - ses:VerifyEmailIdentity
+                Resource: "*"
+
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      PackageType: Image
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: !Ref FunctionName
+      Code:
+        ImageUri: !Sub "${ContainerRegistry}/${FunctionRepository}:${ImageTag}"
+      Timeout: 30
+      MemorySize: 128
+      Environment:
+        Variables:
+          REGION_STR: !Ref "AWS::Region"
+      LoggingConfig:
+        ApplicationLogLevel: INFO
+        LogFormat: JSON
+        LogGroup:
+          Fn::Join:
+            - ""
+            - - "/aws/lambda/"
+              - !Ref FunctionName
+        SystemLogLevel: INFO
+
+  ApiGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - "/aws/lambda/"
+            - !Ref LambdaFunction
+      RetentionInDays: 1
+
+Outputs:
+  LambdaFunctionArn:
+    Description: function ARN
+    Value: !GetAtt LambdaFunction.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaFunctionArn"

@@ -1,0 +1,14 @@
+[
+  {
+    "ParameterKey": "ContainerRegistry",
+    "ParameterValue": "<ContainerRegistry>"
+  },
+  {
+    "ParameterKey": "ImageTag",
+    "ParameterValue": "<ImageTag>"
+  },
+  {
+    "ParameterKey": "FunctionRepository",
+    "ParameterValue": "<FunctionRepository>"
+  }
+]

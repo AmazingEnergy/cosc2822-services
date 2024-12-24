@@ -10,7 +10,7 @@ const promotionCodeTableName = process.env.TABLE_NAME || "PromotionCodeV2";
 exports.handler = async (event, context, callback) => {
   console.log("Received Event: ", event);
 
-  if (!event.items) {
+  if (!event.cartItems) {
     callback(new Error("[BadRequest] Invalid cart structure."));
     return;
   }
@@ -46,7 +46,7 @@ exports.handler = async (event, context, callback) => {
 
       if (promotion.quantity > 0) {
         const discount = promotion.discount || 0;
-        for (let item of event.items) {
+        for (let item of event.cartItems) {
           item.discountPrice = item.productPrice * (1 - discount);
         }
       } else {
@@ -56,7 +56,10 @@ exports.handler = async (event, context, callback) => {
 
     // TODO: apply promotion rules
 
-    return event;
+    return {
+      statusCode: 200,
+      body: event,
+    };
   } catch (error) {
     console.error(error);
     callback(new Error("[InternalServerError] Something went wrong."));

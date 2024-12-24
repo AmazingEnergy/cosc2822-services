@@ -10,7 +10,7 @@ const client = new DynamoDBClient({
 });
 
 const promotionCodeTableName =
-  process.env.INVENTORY_TABLE_NAME || "PromotionCode";
+  process.env.INVENTORY_TABLE_NAME || "PromotionCodeV2";
 
 exports.handler = async (event, context) => {
   console.log("Received Event: ", event);
@@ -19,7 +19,7 @@ exports.handler = async (event, context) => {
     const promotionCode = event.promotionCode;
     if (!promotionCode) {
       console.error("Missing promotionCode");
-      return event;
+      return { status: "skipped" };
     }
     console.log(`Reserve promotion code ${promotionCode}`);
 
@@ -37,10 +37,13 @@ exports.handler = async (event, context) => {
     if (!promotionCodeResponse.Item) {
       // TODO: handle promotion code reservation fail
       console.error(`PromotionCode ${promotionCode} not found`);
-      return event;
+      return { status: "failed" };
     }
+
     const promotion = unmarshall(promotionCodeResponse.Item);
+
     if (
+      !promotion.quantity ||
       promotion.quantity < 1 ||
       (promotion.availableFrom &&
         promotion.availableFrom > new Date().toISOString()) ||
@@ -51,41 +54,41 @@ exports.handler = async (event, context) => {
       console.error(
         `PromotionCode ${promotionCode} is not available. Quantity: ${promotion.quantity}, AvailableFrom: ${promotion.availableFrom}, AvailableTo: ${promotion.availableTo}`
       );
-
-      const updateResponse = await client.send(
-        new UpdateItemCommand({
-          TableName: promotionCodeTableName,
-          Key: {
-            code: {
-              S: promotionCode,
-            },
-          },
-          UpdateExpression: "SET quantity = quantity - :quantity",
-          ExpressionAttributeValues: {
-            ":quantity": { N: "1" },
-          },
-          ReturnValues: "ALL_NEW",
-        })
-      );
-
-      if (updateResponse.Attributes.quantity < 0) {
-        // TODO: handle promotion code reservation fail
-        console.error(`Fail to reserve promotion code ${item.stockCode}`);
-        return event;
-      }
-
-      console.log(
-        "Updated promotion code data: ",
-        JSON.stringify(updateResponse)
-      );
-
-      console.log(`Reserved 1 promotion code for ${promotionCode}`);
-
-      return event;
+      return { status: "failed" };
     }
+
+    const updateResponse = await client.send(
+      new UpdateItemCommand({
+        TableName: promotionCodeTableName,
+        Key: {
+          code: {
+            S: promotionCode,
+          },
+        },
+        UpdateExpression: "SET quantity = quantity - :quantity",
+        ExpressionAttributeValues: {
+          ":quantity": { N: "1" },
+        },
+        ReturnValues: "ALL_NEW",
+      })
+    );
+
+    if (updateResponse.Attributes.quantity < 0) {
+      // TODO: handle promotion code reservation fail
+      console.error(`Fail to reserve promotion code ${item.stockCode}`);
+      return { status: "failed" };
+    }
+
+    console.log(
+      "Updated promotion code data: ",
+      JSON.stringify(updateResponse)
+    );
+
+    console.log(`Reserved 1 promotion code for ${promotionCode}`);
+
+    return { status: "success" };
   } catch (error) {
     console.error(error);
+    return { status: "failed" };
   }
-
-  return event;
 };

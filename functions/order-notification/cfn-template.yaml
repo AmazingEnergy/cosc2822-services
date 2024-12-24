@@ -68,7 +68,7 @@ Resources:
                   - ses:SendEmail
                   - ses:SendTemplatedEmail
                   - ses:ListEmailIdentities
-                  - ses:CreateIdentity
+                  - ses:CreateEmailIdentity
                   - ses:VerifyEmailIdentity
                 Resource: "*"
 

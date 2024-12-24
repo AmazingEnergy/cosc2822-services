@@ -15,6 +15,11 @@ exports.handler = async (event, context) => {
   console.log("Received Event: ", event);
 
   try {
+    if (!event.items) {
+      console.error("Missing items");
+      return event;
+    }
+
     for (const item of event.items) {
       console.log(
         `Reserve stock for skuId: ${item.skuId} quantity: ${item.quantity}`
@@ -38,7 +43,7 @@ exports.handler = async (event, context) => {
       const inventory = unmarshall(inventoryResponse.Item);
       if (inventory.quantity < item.quantity) {
         // TODO: handle stock reservation fail
-        console.error(`Not enough stock for ${item.stockCode}`);
+        console.error(`Inventory ${item.stockCode} is not available`);
         continue;
       }
 
@@ -71,4 +76,6 @@ exports.handler = async (event, context) => {
   } catch (error) {
     console.error(error);
   }
+
+  return event;
 };

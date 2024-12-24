@@ -67,7 +67,7 @@ Resources:
                   - kms:Decrypt
                   - ses:SendEmail
                   - ses:SendTemplatedEmail
-                  - ses:ListIdentities
+                  - ses:ListEmailIdentities
                   - ses:CreateIdentity
                   - ses:VerifyEmailIdentity
                 Resource: "*"

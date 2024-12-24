@@ -170,11 +170,15 @@ Resources:
               "ReservePromotionCode": {
                 "Type": "Task",
                 "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:ReservePromotionCode",
+                "InputPath": "$",
+                "ResultPath": "$.reservePromotionCodeResult",
                 "Next": "ReserveStock"
               },
               "ReserveStock": {
                 "Type": "Task",
                 "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:ReserveStock",
+                "InputPath": "$",
+                "ResultPath": "$.reserveStockResult",
                 "Next": "DisplayResult"
               },
               "DisplayResult": {

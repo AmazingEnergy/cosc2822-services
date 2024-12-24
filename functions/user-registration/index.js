@@ -43,6 +43,8 @@ const autoAddSesIdentity = async (email) => {
       item.IdentityName === email && item.IdentityType === "EMAIL_ADDRESS"
   );
 
+  console.log("Found existing email identity: ", identity);
+
   if (!identity) {
     const createIdentityResponse = await sesV2Client.send(
       new CreateEmailIdentityCommand({
@@ -52,8 +54,6 @@ const autoAddSesIdentity = async (email) => {
 
     console.log("Create Identity Response: ", createIdentityResponse);
   }
-
-  console.log("Found existing email identity: ", identity);
 
   if (identity && identity.VerificationStatus === "SUCCESS") {
     console.log("Email is already verified");

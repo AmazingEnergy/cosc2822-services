@@ -1,0 +1,102 @@
+const {
+  DynamoDBClient,
+  UpdateItemCommand,
+  GetItemCommand,
+  DeleteItemCommand,
+  PutItemCommand,
+} = require("@aws-sdk/client-dynamodb");
+const { unmarshall } = require("@aws-sdk/util-dynamodb");
+
+const client = new DynamoDBClient({
+  region: process.env.AWS_REGION || "ap-southeast-1",
+});
+
+const promotionCodeTableName =
+  process.env.INVENTORY_TABLE_NAME || "PromotionCodeV2";
+
+exports.handler = async (event, context, callback) => {
+  console.log("Received Event: ", event);
+
+  try {
+    if (!event.code) {
+      callback(new Error("[BadRequest] code is missing."));
+      return;
+    }
+
+    if (
+      !event.body.quantity ||
+      event.body.quantity <= 0 ||
+      isNaN(event.body.quantity)
+    ) {
+      callback(new Error("[BadRequest] quantity is missing or invalid."));
+      return;
+    }
+
+    if (!event.body.availableFrom) {
+      callback(new Error("[BadRequest] availableFrom is missing"));
+      return;
+    }
+
+    if (!event.body.availableTo) {
+      callback(new Error("[BadRequest] availableTo is missing"));
+      return;
+    }
+
+    let params = {
+      TableName: promotionCodeTableName,
+      Key: {
+        stockCode: {
+          S: event.code,
+        },
+      },
+      UpdateExpression: `SET 
+        #q = :quantity,
+        availableFrom = :availableFrom,
+        availableTo = :availableTo,
+      `,
+      ExpressionAttributeValues: {
+        ":quantity": { N: event.body.quantity.toString() },
+        ":availableFrom": {
+          N: new Date(event.body.availableFrom).getTime().toString(),
+        },
+        ":availableTo": {
+          N: new Date(event.body.availableTo).getTime().toString(),
+        },
+      },
+      ExpressionAttributeNames: {
+        "#q": "quantity",
+      },
+      ReturnValues: "ALL_NEW",
+    };
+
+    console.log("Params: ", JSON.stringify(params));
+
+    let promotionCodeResponse = await client.send(
+      new UpdateItemCommand(params)
+    );
+
+    console.log(
+      "Updated promotion code data: ",
+      JSON.stringify(promotionCodeResponse)
+    );
+
+    promotionCodeResponse = await client.send(
+      new GetItemCommand({
+        TableName: promotionCodeTableName,
+        Key: {
+          code: {
+            S: event.code,
+          },
+        },
+      })
+    );
+
+    return {
+      statusCode: 200,
+      body: unmarshall(promotionCodeResponse.Item),
+    };
+  } catch (error) {
+    console.error(error);
+    callback(new Error("[InternalServerError] Something went wrong."));
+  }
+};

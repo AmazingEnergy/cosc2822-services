@@ -988,12 +988,24 @@ Outputs:
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-PromotionCodeResourceId"
+  PromotionCodeCodeResourceId:
+    Value: !GetAtt PromotionCodeCodeResource.ResourceId
+    Description: Id of PromotionCodeCode resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PromotionCodeCodeResourceId"
   PromotionRuleResourceId:
     Value: !GetAtt PromotionRuleResource.ResourceId
     Description: Id of PromotionRule resource
     Export:
       Name:
         Fn::Sub: "${AWS::StackName}-PromotionRuleResourceId"
+  PromotionRuleNameResourceId:
+    Value: !GetAtt PromotionRuleNameResource.ResourceId
+    Description: Id of PromotionRuleName resource
+    Export:
+      Name:
+        Fn::Sub: "${AWS::StackName}-PromotionRuleNameResourceId"
   ApplyPromotionResourceId:
     Value: !GetAtt ApplyPromotionResource.ResourceId
     Description: Id of ApplyPromotion resource

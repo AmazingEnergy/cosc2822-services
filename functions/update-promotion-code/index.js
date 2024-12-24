@@ -23,6 +23,11 @@ exports.handler = async (event, context, callback) => {
       return;
     }
 
+    if (!event.body.name) {
+      callback(new Error("[BadRequest] name is missing."));
+      return;
+    }
+
     if (
       !event.body.quantity ||
       event.body.quantity <= 0 ||
@@ -50,11 +55,13 @@ exports.handler = async (event, context, callback) => {
         },
       },
       UpdateExpression: `SET 
+        #n = :name,
         #q = :quantity,
         availableFrom = :availableFrom,
-        availableTo = :availableTo,
+        availableTo = :availableTo
       `,
       ExpressionAttributeValues: {
+        ":name": { S: event.body.name },
         ":quantity": { N: event.body.quantity.toString() },
         ":availableFrom": {
           N: new Date(event.body.availableFrom).getTime().toString(),
@@ -64,6 +71,7 @@ exports.handler = async (event, context, callback) => {
         },
       },
       ExpressionAttributeNames: {
+        "#n": "name",
         "#q": "quantity",
       },
       ReturnValues: "ALL_NEW",

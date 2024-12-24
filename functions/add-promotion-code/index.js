@@ -24,6 +24,18 @@ exports.handler = async (event, context, callback) => {
       return;
     }
 
+    if (!event.discount || event.discount <= 0 || isNaN(event.discount)) {
+      callback(new Error("[BadRequest] discount is missing or invalid."));
+      return;
+    }
+
+    if (event.discount > 1) {
+      callback(
+        new Error("[BadRequest] discount should be less than 1 (e.g. 0.05).")
+      );
+      return;
+    }
+
     if (!event.quantity || event.quantity <= 0 || isNaN(event.quantity)) {
       callback(new Error("[BadRequest] quantity is missing or invalid."));
       return;
@@ -50,6 +62,9 @@ exports.handler = async (event, context, callback) => {
         },
         quantity: {
           N: event.quantity.toString(),
+        },
+        discount: {
+          N: event.discount.toString(),
         },
         availableFrom: {
           N: new Date(event.availableFrom).getTime().toString(),

@@ -29,6 +29,22 @@ exports.handler = async (event, context, callback) => {
     }
 
     if (
+      !event.body.discount ||
+      event.body.discount <= 0 ||
+      isNaN(event.body.discount)
+    ) {
+      callback(new Error("[BadRequest] discount is missing or invalid."));
+      return;
+    }
+
+    if (event.body.discount > 1) {
+      callback(
+        new Error("[BadRequest] discount should be less than 1 (e.g. 0.05).")
+      );
+      return;
+    }
+
+    if (
       !event.body.quantity ||
       event.body.quantity <= 0 ||
       isNaN(event.body.quantity)
@@ -57,12 +73,14 @@ exports.handler = async (event, context, callback) => {
       UpdateExpression: `SET 
         #n = :name,
         #q = :quantity,
+        discount = :discount,
         availableFrom = :availableFrom,
         availableTo = :availableTo
       `,
       ExpressionAttributeValues: {
         ":name": { S: event.body.name },
         ":quantity": { N: event.body.quantity.toString() },
+        ":discount": { N: event.body.discount.toString() },
         ":availableFrom": {
           N: new Date(event.body.availableFrom).getTime().toString(),
         },

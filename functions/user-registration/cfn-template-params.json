@@ -1,5 +1,9 @@
 [
   {
+    "ParameterKey": "CognitoStack",
+    "ParameterValue": "<CognitoStack>"
+  },
+  {
     "ParameterKey": "ContainerRegistry",
     "ParameterValue": "<ContainerRegistry>"
   },

@@ -111,6 +111,7 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
         continue
       fi
 
+      sed -i -e "s/<CognitoStack>/cognito-stack/g" "$dir/cfn-template-params.json"
       sed -i -e "s/<ApiGatewayStack>/api-gateway-stack/g" "$dir/cfn-template-params.json"
       sed -i -e "s/<EndpointsStack>/apigw-endpoints-stack/g" "$dir/cfn-template-params.json"
       sed -i -e "s/<CoreTopicStack>/core-topic-stack/g" "$dir/cfn-template-params.json"

@@ -2,6 +2,9 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: CloudFormation template to create user-registration-function
 
 Parameters:
+  CognitoStack:
+    Type: String
+    Description: stack name
   FunctionName:
     Type: String
     Description: function name
@@ -88,6 +91,15 @@ Resources:
           - - "/aws/lambda/"
             - !Ref LambdaFunction
       RetentionInDays: 1
+
+  LambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LambdaFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn:
+        Fn::ImportValue: !Sub "${CognitoStack}-CognitoUserPoolArn"
 
 Outputs:
   LambdaFunctionArn:

@@ -42,8 +42,8 @@ const auth = async (req, res, next) => {
     }
 
     req.auth.payload = jwt.decode(token);
-    jwtIssuer = getSecretValue(process.env.AUTH_ISSUER_SECRET_NAME);
-    jwtAudience = getSecretValue(process.env.AUTH_AUDIENCE_SECRET_NAME);
+    const jwtIssuer = getSecretValue(process.env.AUTH_ISSUER_SECRET_NAME);
+    const jwtAudience = getSecretValue(process.env.AUTH_AUDIENCE_SECRET_NAME);
     if (req.auth.payload.iss !== jwtIssuer) {
       res.status(401);
       res.json({ status: 401, msg: "Unauthorized: invalid issuer" });

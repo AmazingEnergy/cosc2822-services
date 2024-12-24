@@ -132,6 +132,9 @@ const pay = async (payCartDto) => {
   if (cart.submittedAt !== null) {
     throw new BadRequestError(`Cart has been submitted`);
   }
+  if (cart.cartItems.length === 0) {
+    throw new BadRequestError(`Cart is empty`);
+  }
   if (
     cart.payments.some(
       (payment) => payment.status === models.PaymentStatus.Completed
@@ -174,6 +177,9 @@ const submit = async (submitCartDto) => {
   }
   if (cart.submittedAt !== null) {
     throw new BadRequestError(`Cart has been submitted`);
+  }
+  if (cart.cartItems.length === 0) {
+    throw new BadRequestError(`Cart is empty`);
   }
 
   const order = await orderRepository.addOrder(

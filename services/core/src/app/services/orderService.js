@@ -13,18 +13,16 @@ const listOrders = async (query) => {
     ).map(async (order) => {
       const cart = (await cartRepository.findById(order.cartId))?.dataValues;
       const totalAmount = sum(
-        order.orderItems.map((item) => item.productPrice * item.quantity)
+        cart.cartItems.map((item) => item.productPrice * item.quantity)
       );
       const discountAmount = sum(
-        order.orderItems.map(
-          (item) => (item.discountPrice || 0) * item.quantity
-        )
+        cart.cartItems.map((item) => (item.discountPrice || 0) * item.quantity)
       );
       return {
         ...order.dataValues,
         totalAmount: totalAmount,
         discountAmount: discountAmount,
-        payments: cart?.payments || [],
+        paymentStatus: getPaymentStatus(cart),
       };
     })
   );
@@ -45,8 +43,33 @@ const findById = async (id) => {
     ...order.dataValues,
     totalAmount: totalAmount,
     discountAmount: discountAmount,
+    paymentStatus: getPaymentStatus(cart),
     payments: cart?.payments || [],
   };
+};
+
+const getPaymentStatus = (cart) => {
+  let paymentStatus = null;
+  if (
+    cart?.payments?.some(
+      (payment) => payment.status === models.PaymentStatus.Completed
+    )
+  ) {
+    paymentStatus = models.PaymentStatus.Completed;
+  } else if (
+    cart?.payments?.some(
+      (payment) => payment.status === models.PaymentStatus.New
+    )
+  ) {
+    paymentStatus = models.PaymentStatus.New;
+  } else if (
+    cart?.payments?.some(
+      (payment) => payment.status === models.PaymentStatus.Cancelled
+    )
+  ) {
+    paymentStatus = models.PaymentStatus.Cancelled;
+  }
+  return paymentStatus;
 };
 
 const completeOrder = async (completeOrderDto) => {

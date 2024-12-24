@@ -101,13 +101,13 @@ if [[ "$ACTION" == "deploy-all-stacks" ]]; then
     if [ -d "$dir" ]; then
       function_name=$(basename "$dir")
       if [ ! -f "$dir/cfn-template.yaml" ]; then
-        echo "Skipping $function_name"
+        echo "Skipping deploy $function_name"
         continue
       fi
 
       # if no files in $CHANGED_FILES contains $function_name, then skip
-      if [ -n "$CHANGED_FILES" ] && [[ ! "$CHANGED_FILES" == *"$function_name"* ]]; then
-        echo "Skipping $function_name"
+      if [ -n "$CHANGED_FILES" ] && [[ ! "$CHANGED_FILES" == *"$function_name/"* ]]; then
+        echo "Skipping deploy $function_name"
         continue
       fi
 
@@ -166,7 +166,13 @@ if [[ "$ACTION" == "create-repository" ]]; then
     if [ -d "$dir" ]; then
       function_name=$(basename "$dir")
       if [ ! -f "$dir/Dockerfile" ]; then
-        echo "Skipping $function_name"
+        echo "Skipping build $function_name"
+        continue
+      fi
+
+      # if no files in $CHANGED_FILES contains $function_name, then skip
+      if [ -n "$CHANGED_FILES" ] && [[ ! "$CHANGED_FILES" == *"$function_name/"* ]]; then
+        echo "Skipping build $function_name"
         continue
       fi
 

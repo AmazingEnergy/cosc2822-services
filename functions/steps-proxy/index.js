@@ -35,6 +35,7 @@ const processMessageAsync = async (record, context) => {
         promotionCode: data.promotionCode,
         items: data.orderItems.map((item) => ({
           skuId: item.skuId,
+          stockCode: item.stockCode,
           quantity: item.quantity,
         })),
       };

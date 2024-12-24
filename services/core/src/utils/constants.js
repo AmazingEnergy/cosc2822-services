@@ -11,6 +11,5 @@ module.exports = {
   API_PATH: "/core/api",
 
   HIDDEN_ROLE_CLAIM: "cognito:groups",
-  CLIENT_ID_CLAIM: "table-talk-appId",
-  CLIENT_NAME_CLAIM: "table-talk-appName",
+  HIDDEN_USR_CLAIM: "cognito:username",
 };

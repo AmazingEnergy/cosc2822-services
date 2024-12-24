@@ -8,6 +8,7 @@ const getProfile = controller.get(async (req, res, next) => {
   const profile = await profileService.getProfile(claims.userId);
   res.json({
     ...profile,
+    userName: claims.userName,
     email: claims.email,
   });
 });

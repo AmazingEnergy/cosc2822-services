@@ -23,13 +23,6 @@ const listOrders = async (query) => {
 
   return await dbContext.orders.findAll({
     where: where,
-    include: [
-      {
-        model: dbContext.orderItems,
-        as: "orderItems",
-        attributes: models.OrderItem.getAttributes(),
-      },
-    ],
     order: [[query.sortBy || "createdAt", query.sortDirection || "DESC"]],
     attributes: models.Order.getAttributes(),
   });

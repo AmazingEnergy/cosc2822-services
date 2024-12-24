@@ -50,8 +50,8 @@ jobs:
         id: changed-files
         uses: tj-actions/changed-files@v45
         with:
-          separator: ','
-      
+          separator: ","
+
       - name: List all changed files
         env:
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
@@ -67,12 +67,13 @@ jobs:
       - name: Functions | Push to Amazon ECR
         id: functions-build-image
         env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
           REGION: ${{ secrets.AWS_REGION }}
         run: |
           chmod +x ./scripts.sh
-          ./scripts.sh --action create-repository --container-registry $REGISTRY --image-tag $IMAGE_TAG --region $REGION
+          ./scripts.sh --action create-repository --container-registry $REGISTRY --image-tag $IMAGE_TAG --changed-files $ALL_CHANGED_FILES --region $REGION
 
       ################################################
       # Build Core Service
@@ -81,15 +82,20 @@ jobs:
       - name: Core | Build & Push to Amazon ECR
         id: core-build-image
         env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ env.CORE_ECR_REPOSITORY }}
           IMAGE_TAG: ${{ steps.build-number.outputs.BUILD_NUMBER }}
         run: |
-          chmod +x ./cli/017-create-repository.sh
-          ./cli/017-create-repository.sh $REPOSITORY $REGION
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG ./services/core
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-          echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          if [ -n "$ALL_CHANGED_FILES" ] && [[ ! "$ALL_CHANGED_FILES" == *"services/core"* ]]; then
+            echo "Skipping build core service"
+          else
+            chmod +x ./cli/017-create-repository.sh
+            ./cli/017-create-repository.sh $REPOSITORY $REGION
+            docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG ./services/core
+            docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+            echo "image=$REGISTRY/$REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          fi
 
       - name: Core | Download task definition
         id: core-download-task-def

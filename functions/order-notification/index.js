@@ -1,8 +1,23 @@
-const { SESv2Client, SendEmailCommand } = require("@aws-sdk/client-sesv2");
+const {
+  SESv2Client,
+  SendEmailCommand,
+  ListEmailIdentitiesCommand,
+  CreateEmailIdentityCommand,
+} = require("@aws-sdk/client-sesv2");
+const {
+  SESClient,
+  VerifyEmailIdentityCommand,
+} = require("@aws-sdk/client-ses");
 
-const sesClient = new SESv2Client({
+const sesV2Client = new SESv2Client({
   region: process.env.REGION_STR || "ap-southeast-1",
 });
+
+const sesClient = new SESClient({
+  region: process.env.REGION_STR || "ap-southeast-1",
+});
+
+const emailFrom = process.env.FROM_EMAIL || "easyshop.onl@yopmail.com";
 
 exports.handler = async (event, context) => {
   console.log("Received Event: ", event);
@@ -50,7 +65,11 @@ const readRecord = (record) => {
 };
 
 const sendOrderConfirmationEmail = async (data) => {
-  const { orderNumber, contactEmail } = data;
+  const { orderNumber, contactEmail, contactName } = data;
+
+  await tryVerifyEmail(emailFrom);
+  await tryVerifyEmail(contactEmail);
+
   const params = {
     Destination: {
       ToAddresses: [contactEmail],
@@ -60,22 +79,114 @@ const sendOrderConfirmationEmail = async (data) => {
         Body: {
           Html: {
             Data: `<html>
-            <head></head>
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Thank You for Your Order</title>
+              <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f4f4f9;
+                    color: #333;
+                }
+                .email-container {
+                    max-width: 600px;
+                    margin: 20px auto;
+                    background: #ffffff;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    overflow: hidden;
+                }
+                .header {
+                    background-color: #4CAF50;
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                }
+                .content {
+                    padding: 20px;
+                    text-align: left;
+                }
+                .content h2 {
+                    color: #4CAF50;
+                }
+                .footer {
+                    background-color: #f1f1f1;
+                    text-align: center;
+                    padding: 10px;
+                    font-size: 14px;
+                    color: #777;
+                }
+              </style>
+            </head>
             <body>
-              <h1>Order Confirmation</h1>
-              <p>Thank you for your order. Your order number is ${orderNumber}.</p>
+              <div class="email-container">
+                <div class="header">
+                  <h1>Thank You for Your Order!</h1>
+                </div>
+                <div class="content">
+                  <p>Hi ${contactName},</p>
+                  <p>We have received your order, an order number is: ${orderNumber}.</p>
+                  <p>Our team will process your order and update you the status soon.</p>
+                  <p><strong>Reminder:</strong> To ensure your order is processed without delays, please complete your online payment.</p>
+                  <p>If you’ve already completed your payment, please disregard this message.</p>
+                  <p>Thank you for choosing EasyShop! We hope you have a good shopping time on our platform.</p>
+                </div>
+                 <div class="footer">
+                  <p>&copy; 2024-2025 EasyShop. All rights reserved.</p>
+                  <p>address: 123 ABC | support.easyshop@yopmail.com</p>
+                </div>
+              </div>
             </body>
             </html>`,
           },
         },
         Subject: {
-          Data: "Order Confirmation",
+          Data: `Order Confirmation: ${orderNumber}`,
         },
       },
     },
-    FromEmailAddress: process.env.FROM_EMAIL || "easyshop.onl@yopmail.com",
+    FromEmailAddress: emailFrom,
   };
   const command = new SendEmailCommand(params);
-  await sesClient.send(command);
+  await sesV2Client.send(command);
   console.log("Successfully sent order confirmation email");
+};
+
+const tryVerifyEmail = async (email) => {
+  // https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-email-addresses-procedure.html
+
+  const listIdentitiesResponse = await sesV2Client.send(
+    new ListEmailIdentitiesCommand({
+      PageSize: Number(process.env.PAGE_SIZE || "1000"),
+    })
+  );
+
+  const identity = listIdentitiesResponse.EmailIdentities.find(
+    (item) =>
+      item.IdentityName === email && item.IdentityType === "EMAIL_ADDRESS"
+  );
+
+  if (!identity) {
+    const createIdentityResponse = await sesV2Client.send(
+      new CreateEmailIdentityCommand({
+        EmailIdentity: email,
+      })
+    );
+
+    console.log("Create Identity Response: ", createIdentityResponse);
+  }
+
+  if (identity && identity.VerificationStatus === "SUCCESS") {
+    console.log("Email is already verified");
+    return;
+  }
+
+  await sesClient.send(
+    new VerifyEmailIdentityCommand({
+      EmailAddress: email,
+    })
+  );
 };

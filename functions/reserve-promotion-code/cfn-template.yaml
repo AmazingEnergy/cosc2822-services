@@ -1,27 +1,20 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CloudFormation template to create order-notification-function
+Description: CloudFormation template to create reserve-promotion-code-function
 
 Parameters:
   FunctionName:
     Type: String
     Description: function name
-    Default: OrderNotification
+    Default: ReservePromotionCode
   FunctionRepository:
     Type: String
     Description: function ECR repository
-  CoreTopicStack:
-    Type: String
-    Description: stack name
   ContainerRegistry:
     Type: String
     Description: container registry
   ImageTag:
     Type: String
     Description: image tag
-  EmailNotificationFrom:
-    Type: String
-    Description: email notification from
-    Default: "noreply.easyshop@yopmail.com"
 
 Resources:
   # https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
@@ -60,16 +53,8 @@ Resources:
                   - dynamodb:Scan
                   - dynamodb:BatchWriteItem
                   - dynamodb:PutItem
-                  - dynamodb:UpdateIte
-                  - sqs:ReceiveMessage
-                  - sqs:DeleteMessage
-                  - sqs:GetQueueAttributes
-                  - kms:Decrypt
-                  - ses:SendEmail
-                  - ses:SendTemplatedEmail
-                  - ses:ListIdentities
-                  - ses:CreateIdentity
-                  - ses:VerifyEmailIdentity
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
                 Resource: "*"
 
   LambdaFunction:
@@ -85,7 +70,6 @@ Resources:
       Environment:
         Variables:
           REGION_STR: !Ref "AWS::Region"
-          FROM_EMAIL: !Ref EmailNotificationFrom
       LoggingConfig:
         ApplicationLogLevel: INFO
         LogFormat: JSON
@@ -108,18 +92,9 @@ Resources:
             - !Ref LambdaFunction
       RetentionInDays: 1
 
-  # https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html#events-sqs-eventsource
-
-  LambdaFunctionEventSourceMapping:
-    Type: AWS::Lambda::EventSourceMapping
-    Properties:
-      BatchSize: 10
-      EventSourceArn:
-        Fn::ImportValue: !Sub "${CoreTopicStack}-OrderNotificationQueueArn"
-      FunctionName: !Ref LambdaFunction
-      FunctionResponseTypes:
-        - "ReportBatchItemFailures"
-      Enabled: true
-      MaximumBatchingWindowInSeconds: 0
-      ScalingConfig:
-        MaximumConcurrency: 2
+Outputs:
+  LambdaFunctionArn:
+    Value: !GetAtt LambdaFunction.Arn
+    Description: Lambda function ARN
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaFunctionArn"

@@ -5,6 +5,7 @@ const { sum } = require("../../utils/utils");
 const cartRepository = require("../../infra/repositories/sequelizeCartRepository");
 const orderRepository = require("../../infra/repositories/sequelizeOrderRepository");
 const models = require("../models");
+const snsConnector = require("../../infra/connectors/snsConnector");
 
 const listOrders = async (query) => {
   const orders = await Promise.all(

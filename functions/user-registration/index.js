@@ -13,7 +13,7 @@ exports.handler = async (event) => {
 
   const email = event.request.userAttributes.email;
 
-  console.log("New registered user email: ", email);
+  console.log("New registered user email:", email);
 
   if (email) {
     try {

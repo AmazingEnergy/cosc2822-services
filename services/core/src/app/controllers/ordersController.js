@@ -7,7 +7,7 @@ const ForbiddenError = require("../errors/ForbiddenError");
 const getOrders = controller.get(async (req, res, next) => {
   const claims = extractUserClaims(req);
   const query = { ...req.query, customerId: claims.userId };
-  if (claims.role.some((role) => role === "admin")) {
+  if (claims.role && claims.role.some((role) => role === "admin")) {
     delete query.customerId;
   }
   res.json(await orderService.listOrders(query));

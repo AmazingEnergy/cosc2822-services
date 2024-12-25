@@ -20,7 +20,7 @@ const getOrder = controller.get(async (req, res, next) => {
 const putCancelOrder = controller.put(
   async (req, res, next) => {
     const claims = extractUserClaims(req);
-    if (claims.role === "admin") {
+    if (claims.role && claims.role.some((role) => role === "admin")) {
       throw new ForbiddenError("Only customer can cancel order.");
     }
     res.json(
@@ -38,7 +38,7 @@ const putCancelOrder = controller.put(
 const putRejectOrder = controller.put(
   async (req, res, next) => {
     const claims = extractUserClaims(req);
-    if (claims.role !== "admin") {
+    if (!claims.role || claims.role.every((role) => role !== "admin")) {
       throw new ForbiddenError("Only admin can reject order.");
     }
     res.json(
@@ -56,7 +56,7 @@ const putRejectOrder = controller.put(
 const putCompleteOrder = controller.put(
   async (req, res, next) => {
     const claims = extractUserClaims(req);
-    if (claims.role !== "admin") {
+    if (!claims.role || claims.role.every((role) => role !== "admin")) {
       throw new ForbiddenError("Only admin can complete order.");
     }
     res.json(

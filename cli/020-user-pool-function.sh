@@ -6,5 +6,5 @@ REGION=${3:-ap-northeast-1}
 
 aws cognito-idp update-user-pool \
   --user-pool-id $USER_POO_ID \
-  --lambda-config PreSignUp=$LAMBDA_ARN \
+  --lambda-config PostConfirmation=$LAMBDA_ARN \
   --region $REGION

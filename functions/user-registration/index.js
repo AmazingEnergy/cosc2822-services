@@ -8,10 +8,8 @@ const sesV2Client = new SESv2Client({
   region: process.env.REGION_STR || "ap-southeast-1",
 });
 
-exports.handler = async (event, context, callback) => {
+exports.handler = async (event) => {
   console.log("Received Event: ", event);
-
-  event.response.autoConfirmUser = false;
 
   const email = event.request.userAttributes.email;
 
@@ -25,8 +23,7 @@ exports.handler = async (event, context, callback) => {
     }
   }
 
-  // Return to Amazon Cognito
-  callback(null, event);
+  return event;
 };
 
 const autoAddSesIdentity = async (email) => {

@@ -149,7 +149,7 @@ const pay = async (payCartDto) => {
   for (const payment of pendingPayments) {
     payment.status = models.PaymentStatus.Cancelled;
     payment.updatedBy = payCartDto.paidBy;
-    await cartRepository.savePayment(payment);
+    await paymentRepository.savePayment(payment);
   }
 
   const session = await stripeConnector.createSession(
@@ -243,7 +243,7 @@ const paymentNotification = async (data, sig) => {
         payment.status = models.PaymentStatus.Completed;
         payment.updatedBy = "webhook";
         payment.updatedAt = new Date();
-        await cartRepository.savePayment(payment);
+        await paymentRepository.savePayment(payment);
       }
       await snsConnector.publicOrderEvent("CartPaySuccess", cart.dataValues);
       break;
@@ -263,7 +263,7 @@ const paymentNotification = async (data, sig) => {
         payment.status = models.PaymentStatus.Cancelled;
         payment.updatedBy = "webhook";
         payment.updatedAt = new Date();
-        await cartRepository.savePayment(payment);
+        await paymentRepository.savePayment(payment);
       }
       await snsConnector.publicOrderEvent("CartPayFail", cart.dataValues);
       break;

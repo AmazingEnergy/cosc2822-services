@@ -227,7 +227,7 @@ const paymentNotification = async (data, sig) => {
 
   switch (event.type) {
     case "checkout.session.completed":
-    case "checkout.session.async_payment_succeeded":
+    case "checkout.session.async_payment_succeeded": {
       console.log(`Handle event type ${event.type} - ${event.id}`);
       const session = await stripeConnector.getSession(event.data.object.id);
       const cartId = session.metadata.cartId;
@@ -247,6 +247,7 @@ const paymentNotification = async (data, sig) => {
       }
       await snsConnector.publicOrderEvent("CartPaySuccess", cart.dataValues);
       break;
+    }
     case "checkout.session.expired": {
       console.log(`Handle event type ${event.type} - ${event.id}`);
       const session = await stripeConnector.getSession(event.data.object.id);

@@ -6,6 +6,7 @@ const hookApiRoutes = express.Router();
 
 hookApiRoutes.post(
   "/hooks/stripe/payments",
+  express.raw({ type: "application/json" }),
   hooksController.postStripeNotifications
 );
 

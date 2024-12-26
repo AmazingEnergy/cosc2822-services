@@ -5,7 +5,7 @@ class PayCartDto extends BaseDto {
   constructor() {
     super(
       Joi.object({
-        returnUrl: Joi.string().max(255).required(),
+        returnUrl: Joi.string().max(255).optional().default(null),
         paidBy: Joi.string().max(255).empty("").default(null).optional(),
       })
     );

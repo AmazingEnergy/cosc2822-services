@@ -29,7 +29,7 @@ const getSession = async (sessionId) => {
 };
 
 const createSession = async (cart, returnUrl) => {
-  lineItems = [];
+  const lineItems = [];
   for (let item of cart.cartItems) {
     const product = await createProduct(
       item.productName,
@@ -40,16 +40,20 @@ const createSession = async (cart, returnUrl) => {
       quantity: item.quantity,
     });
   }
-  const session = await stripeClient().checkout.sessions.create({
+  const request = {
     ui_mode: "embedded",
     line_items: lineItems,
     mode: "payment",
-    return_url: `${returnUrl}?session_id={CHECKOUT_SESSION_ID}`,
     metadata: {
       cartId: cart.id,
     },
     expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
-  });
+  };
+  if (returnUrl) {
+    request["return_url"] = `${returnUrl}?session_id={CHECKOUT_SESSION_ID}`;
+  }
+
+  const session = await stripeClient().checkout.sessions.create(request);
   return session;
 };
 

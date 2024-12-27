@@ -76,7 +76,7 @@ const createProduct = async (name, productPrice, imageUrls) => {
     product: product.id,
     currency: "usd",
     unit_amount: priceInCent,
-    unit_amount_decimal: priceInCent.toString(),
+    // unit_amount_decimal: priceInCent.toString(),
     billing_scheme: "per_unit",
   });
   return {

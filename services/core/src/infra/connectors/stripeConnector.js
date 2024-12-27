@@ -66,6 +66,7 @@ const createSession = async (cart, returnUrl) => {
  */
 const createProduct = async (name, productPrice, imageUrls) => {
   // https://docs.stripe.com/products-prices/how-products-and-prices-work
+  const priceInCent = parseFloat(productPrice) * 100;
 
   const product = await stripeClient().products.create({
     name: name,
@@ -74,7 +75,8 @@ const createProduct = async (name, productPrice, imageUrls) => {
   const price = await stripeClient().prices.create({
     product: product.id,
     currency: "usd",
-    unit_amount: parseInt(productPrice),
+    unit_amount: priceInCent,
+    unit_amount_decimal: priceInCent.toString(),
     billing_scheme: "per_unit",
   });
   return {
@@ -124,6 +126,7 @@ const extractEvent = (data, sig) => {
 };
 
 module.exports = {
+  getSession,
   createSession,
   createProduct,
   getCustomer,

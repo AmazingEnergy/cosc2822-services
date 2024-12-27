@@ -167,6 +167,26 @@ const pay = async (payCartDto) => {
   };
 };
 
+const getPayment = async (cartId, sessionId) => {
+  let cart = await cartRepository.findById(cartId);
+  if (!cart) {
+    throw new NotFoundError(`Not found cart with id ${cartId}`);
+  }
+  const payment = cart.payments.find((p) => p.paymentReference === sessionId);
+  if (!payment) {
+    throw new NotFoundError(`Not found payment with sessionId ${sessionId}`);
+  }
+
+  const session = await stripeConnector.getSession(sessionId);
+
+  if (session.payment_status === "paid") {
+    payment.status = models.PaymentStatus.Completed;
+    await paymentRepository.savePayment(payment);
+  }
+
+  return session;
+};
+
 const submit = async (submitCartDto) => {
   let cart = await cartRepository.findById(submitCartDto.cartId);
   if (!cart) {
@@ -282,6 +302,7 @@ module.exports = {
   updateItem,
   removeItem,
   pay,
+  getPayment,
   submit,
   paymentNotification,
 };

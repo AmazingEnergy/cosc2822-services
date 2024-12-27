@@ -79,6 +79,14 @@ const postPayCart = controller.post(
   dto.PayCartDto
 );
 
+const getCartPayment = controller.get(
+  async (req, res, next) => {
+    res.json(await cartService.getPayment(req.params.id, req.query.sessionId));
+  },
+  dto.FindCartParams,
+  dto.ListCartPaymentQuery
+);
+
 const postSubmitCart = controller.post(
   async (req, res, next) => {
     res.json(
@@ -101,5 +109,6 @@ module.exports = {
   postRemoveCartItem,
   postUpdateCartItem,
   postPayCart,
+  getCartPayment,
   postSubmitCart,
 };

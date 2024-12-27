@@ -5,6 +5,7 @@ module.exports.UpdateCartItemDto = require("./cart/updateCartItemDto");
 module.exports.PayCartDto = require("./cart/payCartDto");
 module.exports.SubmitCartDto = require("./cart/submitCartDto");
 module.exports.FindCartParams = require("./cart/findCartParams");
+module.exports.ListCartPaymentQuery = require("./cart/listCartPaymentQuery");
 
 module.exports.CancelOrderDto = require("./order/cancelOrderDto");
 module.exports.CompleteOrderDto = require("./order/completeOrderDto");

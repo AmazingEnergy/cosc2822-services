@@ -6,6 +6,7 @@ const dbContext = require("../entities");
  * @returns
  * @type {(query: {customerId: string | undefined,
  *  searchText: string | undefined,
+ *  status: string | undefined,
  * 	sortBy: string | undefined,
  * 	sortDirection: string | undefined})
  * 	=> Promise<import("sequelize").Model<any, any>>[]>}
@@ -19,6 +20,10 @@ const listOrders = async (query) => {
 
   if (query.searchText !== undefined && query.searchText !== null) {
     where.orderNumber = { [Op.like]: `%${query.searchText}%` };
+  }
+
+  if (query.status !== undefined && query.status !== null) {
+    where.status = query.status;
   }
 
   return await dbContext.orders.findAll({

@@ -185,6 +185,11 @@ const getPayment = async (cartId, sessionId) => {
     await paymentRepository.savePayment(payment);
   }
 
+  if (payment.status === models.PaymentStatus.Completed) {
+    session.payment_status = "paid";
+    session.status = "completed";
+  }
+
   return session;
 };
 

@@ -6,6 +6,10 @@ class ListOrderQuery extends BaseQuery {
     super(
       Joi.object({
         searchText: Joi.string().optional(),
+        status: Joi.string()
+          .optional()
+          .default(null)
+          .valid("new", "completed", "cancelled", "rejected"),
         sortBy: Joi.string()
           .optional()
           .default("createdAt")

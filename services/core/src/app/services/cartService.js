@@ -164,6 +164,7 @@ const pay = async (payCartDto) => {
 
   return {
     clientSecret: session.client_secret,
+    sessionId: session.id,
   };
 };
 

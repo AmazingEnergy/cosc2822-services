@@ -27,6 +27,7 @@
     "@aws-sdk/client-sns": "^3.716.0",
     "@aws-sdk/client-ssm": "^3.712.0",
     "@aws-sdk/client-sts": "^3.709.0",
+    "body-parser": "^1.20.3",
     "cognito-express": "^3.0.4",
     "cookie-parser": "^1.4.6",
     "cors": "*",

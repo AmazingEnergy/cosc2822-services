@@ -1,6 +1,6 @@
 const path = require("node:path");
-var fs = require("node:fs");
-var https = require("https");
+const fs = require("node:fs");
+const https = require("https");
 
 const express = require("express");
 const cors = require("cors");
@@ -25,12 +25,18 @@ loadSecrets().then(() => {
   app.use(cors({ credentials: true, origin: true }));
 
   app.use(cookieParser());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
   app.use(morgan("combined"));
 
   connectToMySqlServer().then(() => {
     autoMigration().then(() => {
+      const { API_PATH } = require("./utils/constants");
+      const hookApiRoutes = require("./routes/hookApiRoute");
+
+      app.use(API_PATH, hookApiRoutes);
+
+      app.use(express.json());
+      app.use(express.urlencoded({ extended: true }));
+
       app.use(auth);
 
       route(app);

@@ -3,16 +3,17 @@ const cartService = require("../services/cartService");
 
 const postStripeNotifications = controller.post(async (req, res) => {
   try {
-    console.log("Webhook data:", req.body);
+    console.log("Webhook data:", req.body.toString());
     console.log("Webhook signature:", req.headers["stripe-signature"]);
 
     await cartService.paymentNotification(
-      req.body,
+      req.body.toString(),
       req.headers["stripe-signature"]
     );
-    res.send();
+    res.status(200).send();
   } catch (err) {
-    res.status(400).send(`Webhook Error: ${err.message}`);
+    console.log("Webhook Error:", err.message);
+    res.status(200).send();
   }
 });
 

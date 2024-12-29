@@ -13,7 +13,7 @@ const postStripeNotifications = controller.post(async (req, res) => {
     res.status(200).send();
   } catch (err) {
     console.log("Webhook Error:", err.message);
-    res.status(200).send();
+    res.status(400).send(`Webhook Error: ${err.message}`);
   }
 });
 

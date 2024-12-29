@@ -58,6 +58,10 @@ const createSession = async (cart, returnUrl) => {
   return session;
 };
 
+const expireSession = async (sessionId) => {
+  return await stripeClient().checkout.sessions.expire(sessionId);
+};
+
 /**
  * @param {string} name
  * @param {number} productPrice
@@ -128,6 +132,7 @@ const extractEvent = (data, sig) => {
 module.exports = {
   getSession,
   createSession,
+  expireSession,
   createProduct,
   getCustomer,
   createCustomer,

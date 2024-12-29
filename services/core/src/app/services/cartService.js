@@ -147,6 +147,7 @@ const pay = async (payCartDto) => {
     (payment) => payment.status === models.PaymentStatus.New
   );
   for (const payment of pendingPayments) {
+    await stripeConnector.expireSession(payment.paymentReference);
     payment.status = models.PaymentStatus.Cancelled;
     payment.updatedBy = payCartDto.paidBy;
     await paymentRepository.savePayment(payment);
@@ -177,18 +178,21 @@ const getPayment = async (cartId, sessionId) => {
   if (!payment) {
     throw new NotFoundError(`Not found payment with sessionId ${sessionId}`);
   }
+  if (payment.status === models.PaymentStatus.Cancelled) {
+    throw new BadRequestError(`Payment has been cancelled`);
+  }
 
   const session = await stripeConnector.getSession(sessionId);
 
-  if (session.payment_status === "paid") {
-    payment.status = models.PaymentStatus.Completed;
-    await paymentRepository.savePayment(payment);
-  }
+  // if (session.payment_status === "paid") {
+  //   payment.status = models.PaymentStatus.Completed;
+  //   await paymentRepository.savePayment(payment);
+  // }
 
-  if (payment.status === models.PaymentStatus.Completed) {
-    session.payment_status = "paid";
-    session.status = "completed";
-  }
+  // if (payment.status === models.PaymentStatus.Completed) {
+  //   session.payment_status = "paid";
+  //   session.status = "completed";
+  // }
 
   return session;
 };

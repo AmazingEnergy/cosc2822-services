@@ -10,7 +10,11 @@ class SubmitCartDto extends BaseDto {
         contactEmail: Joi.string().max(255).required(),
         contactPhone: Joi.string().max(255).required(),
         deliveryAddress: Joi.string().max(500).required(),
-        promotionCode: Joi.string().max(255).optional().default(null),
+        promotionCode: Joi.string()
+          .max(255)
+          .optional()
+          .default(null)
+          .allow(null),
         submittedBy: Joi.string().max(255).optional().default(null),
       })
     );

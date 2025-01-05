@@ -17,6 +17,7 @@ const postUpdateProfile = controller.post(async (req, res, next) => {
   const claims = extractUserClaims(req);
   const profile = await profileService.updateProfile({
     ...req.body,
+    email: req.body.email || claims.email,
     customerId: claims.userId,
     updatedBy: claims.email,
   });

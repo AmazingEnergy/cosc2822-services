@@ -102,16 +102,16 @@ const cancelOrder = async (cancelOrderDto) => {
       `Fail to cancel. Invalid status of an Order ${cancelOrderDto.orderId}.`
     );
 
-  let cart = await cartRepository.findById(orderInDb.cartId);
-  if (
-    cart?.payments?.some(
-      (payment) => payment.status === models.PaymentStatus.Completed
-    )
-  ) {
-    throw new BadRequestError(
-      `Fail to cancel. Order ${cancelOrderDto.orderId} has been paid.`
-    );
-  }
+  // let cart = await cartRepository.findById(orderInDb.cartId);
+  // if (
+  //   cart?.payments?.some(
+  //     (payment) => payment.status === models.PaymentStatus.Completed
+  //   )
+  // ) {
+  //   throw new BadRequestError(
+  //     `Fail to cancel. Order ${cancelOrderDto.orderId} has been paid.`
+  //   );
+  // }
 
   orderInDb.status = models.OrderStatus.Cancelled;
   orderInDb.updatedAt = new Date();

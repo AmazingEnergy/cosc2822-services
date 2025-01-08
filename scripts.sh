@@ -168,6 +168,13 @@ if [[ "$ACTION" == "create-repository" ]]; then
 	exit 0
 fi
 
+if [[ "$ACTION" == "create-core-repository" ]]; then
+	chmod +x ./cli/017-create-repository.sh
+  ./cli/017-create-repository.sh easy-shop-core $REGION
+  docker build -t $CONTAINER_REGISTRY/easy-shop-core:$IMAGE_TAG ./services/core
+  docker push $CONTAINER_REGISTRY/easy-shop-core:$IMAGE_TAG
+fi
+
 if [[ "$ACTION" == "clean-repositories" ]]; then
 	chmod +x ./cli/018-clean-repositories.sh
 	./cli/018-clean-repositories.sh $REGION

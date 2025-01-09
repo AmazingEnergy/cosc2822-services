@@ -69,43 +69,50 @@ exports.handler = async (event, context, callback) => {
 
     console.log("Stock Codes: ", JSON.stringify(stockCodes));
 
-    const stockCodesExpression = stockCodes
-      .map((_, i) => `:code${i}`)
-      .join(", ");
+    if (stockCodes.length !== 0) {
+      const stockCodesExpression = stockCodes
+        .map((_, i) => `:code${i}`)
+        .join(", ");
 
-    console.log("Stock Codes Expression: ", stockCodesExpression);
+      console.log("Stock Codes Expression: ", stockCodesExpression);
 
-    const stockCodesExpressionValues = stockCodes.reduce(
-      (acc, stockCode, i) => ({
-        ...acc,
-        [`:code${i}`]: { S: stockCode },
-      }),
-      {}
-    );
-
-    console.log("Stock Codes Expression Values: ", stockCodesExpressionValues);
-
-    const inventoryResponse = await client.send(
-      new ScanCommand({
-        TableName: inventoryTableName,
-        FilterExpression: `stockCode IN (${stockCodesExpression})`,
-        ExpressionAttributeValues: stockCodesExpressionValues,
-      })
-    );
-
-    const inventories = inventoryResponse.Items.map((item) => unmarshall(item));
-
-    console.log("Unmarshalled inventory data: ", JSON.stringify(inventories));
-
-    products.forEach((product) => {
-      const inventory = inventories.find(
-        (inventory) => inventory.stockCode === product.stockCode
+      const stockCodesExpressionValues = stockCodes.reduce(
+        (acc, stockCode, i) => ({
+          ...acc,
+          [`:code${i}`]: { S: stockCode },
+        }),
+        {}
       );
 
-      if (inventory) {
-        product.inventory = inventory;
-      }
-    });
+      console.log(
+        "Stock Codes Expression Values: ",
+        stockCodesExpressionValues
+      );
+
+      const inventoryResponse = await client.send(
+        new ScanCommand({
+          TableName: inventoryTableName,
+          FilterExpression: `stockCode IN (${stockCodesExpression})`,
+          ExpressionAttributeValues: stockCodesExpressionValues,
+        })
+      );
+
+      const inventories = inventoryResponse.Items.map((item) =>
+        unmarshall(item)
+      );
+
+      console.log("Unmarshalled inventory data: ", JSON.stringify(inventories));
+
+      products.forEach((product) => {
+        const inventory = inventories.find(
+          (inventory) => inventory.stockCode === product.stockCode
+        );
+
+        if (inventory) {
+          product.inventory = inventory;
+        }
+      });
+    }
 
     if (productResponse.LastEvaluatedKey) {
       return {
